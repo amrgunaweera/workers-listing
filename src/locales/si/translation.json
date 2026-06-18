@@ -4,7 +4,9 @@
     "allAds": "සියලුම දැන්වීම්",
     "login": "පුරනය වන්න",
     "register": "ලියාපදිංචි වන්න",
-    "dashboard": "පාලක පුවරුව"
+    "dashboard": "පාලක පුවරුව",
+    "needService": "සේවා ලබාගැනීමට",
+    "provideService": "සේවා සැපයීමට"
   },
   "hero": {
     "title": "ඔබේ ප්‍රදේශයේ හොඳම සේවකයින් සොයා ගන්න",
@@ -56,5 +58,42 @@
     "officialBlog": "නිල බ්ලොග් අඩවිය",
     "downloadTitle": "අපගේ ඇප් එක බාගත කරන්න",
     "copyright": "© {{year}}. සියලුම හිමිකම් ඇවිරිණි. BestBaas Technologies"
+  },
+  "auth": {
+    "loginError": "විද්‍යුත් තැපෑල හෝ මුරපදය වැරදියි.",
+    "loginTitle": "පුරනය වන්න",
+    "loginDesc": "ඔබගේ ගිණුමට පිවිසීමට ඔබගේ තොරතුරු ඇතුලත් කරන්න",
+    "email": "විද්‍යුත් තැපෑල",
+    "password": "මුරපදය",
+    "forgotPassword": "මුරපදය අමතක වූවාද?",
+    "signingIn": "පුරනය වෙමින්...",
+    "signIn": "පුරනය වන්න",
+    "noAccount": "ගිණුමක් නොමැතිද?",
+    "registerNow": "දැන්ම ලියාපදිංචි වන්න",
+    "registerError": "ගිණුම නිර්මාණය කිරීමට අපොහොසත් විය.",
+    "registerTitle": "ගිණුමක් සාදන්න",
+    "registerDesc": "සේවකයෙකු ලෙස ලියාපදිංචි වී සේවාවන් ලබාදෙන්න, නැතහොත් සේවා ලබාගන්නෙකු ලෙස එක්වන්න.",
+    "firstName": "පළමු නම",
+    "lastName": "වාසගම",
+    "role": "භූමිකාව",
+    "selectRolePlaceholder": "භූමිකාවක් තෝරන්න",
+    "roleUser": "සේවා ලබාගැනීමට (පාරිභෝගික)",
+    "roleWorker": "සේවා සැපයීමට (සේවක)",
+    "registering": "ගිණුම සාදමින්...",
+    "register": "ලියාපදිංචි වන්න",
+    "hasAccount": "දැනටමත් ගිණුමක් තිබේද?",
+    "signInLink": "පුරනය වන්න",
+    "emailOrPhone": "විද්‍යුත් තැපෑල හෝ දුරකථන අංකය",
+    "optional": "අත්‍යවශ්‍ය නොවේ",
+    "phone": "දුරකථන අංකය",
+    "chooseRegisterType": "ලියාපදිංචි වීමේ වර්ගය තෝරන්න",
+    "cancel": "අවලංගු කරන්න",
+    "resetEmailSent": "Reset Email Sent",
+    "resetError": "Reset Error",
+    "forgotPasswordTitle": "Forgot Password Title",
+    "forgotPasswordDesc": "Forgot Password Desc",
+    "sending": "Sending",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back To Login"
   }
 }

@@ -19,6 +19,7 @@ import Register from './pages/Register';
 import WorkerProfile from './pages/WorkerProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import WorkersList from './pages/WorkersList';
+import ForgotPassword from './pages/ForgotPassword';
 import { Button } from './components/ui/button';
 
 function Navbar() {
@@ -58,8 +59,11 @@ function Navbar() {
               <Link to="/login" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 {t('nav.login')}
               </Link>
-              <Link to="/register" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                {t('nav.register')}
+              <Link to="/register?role=user" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                {t('nav.needService')}
+              </Link>
+              <Link to="/register?role=worker" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                {t('nav.provideService')}
               </Link>
             </div>
 
@@ -118,8 +122,11 @@ function Navbar() {
             <Link to="/login" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
               {t('nav.login')}
             </Link>
-            <Link to="/register" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
-              {t('nav.register')}
+            <Link to="/register?role=user" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
+              {t('nav.needService')}
+            </Link>
+            <Link to="/register?role=worker" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
+              {t('nav.provideService')}
             </Link>
             
             <div className="px-3 py-2 flex flex-col gap-2">
@@ -276,6 +283,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/workers" element={<WorkersList />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<WorkerProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />

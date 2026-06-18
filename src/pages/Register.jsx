@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Button } from '../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Link, useNavigate } from 'react-router-dom';
+
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { auth, db } from '../lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlRole = searchParams.get('role');
   
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
+  const [role, setRole] = useState(urlRole === 'worker' ? 'worker' : 'user');
+
+  useEffect(() => {
+    if (urlRole) {
+      setRole(urlRole === 'worker' ? 'worker' : 'user');
+    }
+  }, [urlRole]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,11 +36,13 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const registerEmail = email.trim() || `worker-${phone.trim()}@bestbaas.com`;
+      const userCredential = await createUserWithEmailAndPassword(auth, registerEmail, password);
       const user = userCredential.user;
       
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
+        phone: phone.trim() || null,
         role: role,
         createdAt: new Date().toISOString()
       });
@@ -43,7 +56,7 @@ export default function Register() {
           location: 'Not specified',
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}`,
           bio: 'New worker on the platform.',
-          phone: '',
+          phone: phone.trim(),
           available: true,
           userId: user.uid
         });
@@ -52,7 +65,7 @@ export default function Register() {
       navigate(role === 'worker' ? `/profile?id=${user.uid}` : '/');
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to create an account.');
+      setError(t('auth.registerError'));
     } finally {
       setLoading(false);
     }
@@ -60,11 +73,11 @@ export default function Register() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/10">
-      <Card className="w-full max-w-md glass border-border/40 border">
+      <Card className="w-full max-w-md bg-white dark:bg-zinc-950 border-border/40 border shadow-md [--card-spacing:--spacing(6)]">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-bold tracking-tight">Create an Account</CardTitle>
+          <CardTitle className="text-3xl font-bold tracking-tight">{t('auth.registerTitle')}</CardTitle>
           <CardDescription>
-            Join as a worker to list your services, or as a user to hire.
+            {t('auth.registerDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -72,43 +85,39 @@ export default function Register() {
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required className="bg-background/50" />
+                <Label htmlFor="firstName">{t('auth.firstName')}</Label>
+                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="John" required className="bg-background/50" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required className="bg-background/50" />
+                <Label htmlFor="lastName">{t('auth.lastName')}</Label>
+                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Doe" required className="bg-background/50" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="m@example.com" required className="bg-background/50" />
+              <Label htmlFor="email">
+                {t('auth.email')} {role === 'worker' && <span className="text-muted-foreground text-xs font-normal">({t('auth.optional')})</span>}
+              </Label>
+              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="john.doe@example.com" required={role !== 'worker'} className="bg-background/50" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger className="bg-background/50">
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Looking to Hire (User)</SelectItem>
-                  <SelectItem value="worker">Looking for Work (Worker)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="phone">
+                {t('auth.phone')} {role !== 'worker' && <span className="text-muted-foreground text-xs font-normal">({t('auth.optional')})</span>}
+              </Label>
+              <Input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="0712345678" required={role === 'worker'} className="bg-background/50" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required className="bg-background/50" />
+              <Label htmlFor="password">{t('auth.password')}</Label>
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="bg-background/50" />
             </div>
             <Button className="w-full mt-4" type="submit" disabled={loading}>
-              {loading ? 'Creating account...' : 'Register'}
+              {loading ? t('auth.registering') : t('auth.register')}
             </Button>
           </form>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
+            {t('auth.hasAccount')}{' '}
             <Link to="/login" className="font-medium text-primary hover:underline">
-              Sign in
+              {t('auth.signInLink')}
             </Link>
           </div>
         </CardContent>

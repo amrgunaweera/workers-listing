@@ -4,7 +4,9 @@
     "allAds": "All Ads",
     "login": "Login",
     "register": "Register",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "needService": "Need Service",
+    "provideService": "Provide Service"
   },
   "hero": {
     "title": "Find the Best Workers in Your Area",
@@ -56,5 +58,42 @@
     "officialBlog": "Official Blog",
     "downloadTitle": "Download our app",
     "copyright": "© {{year}}. All rights reserved. BestBaas Technologies"
+  },
+  "auth": {
+    "loginError": "Invalid email or password.",
+    "loginTitle": "Login",
+    "loginDesc": "Enter your credentials to access your account",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "signingIn": "Signing in...",
+    "signIn": "Sign In",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Register now",
+    "registerError": "Failed to create an account.",
+    "registerTitle": "Create an Account",
+    "registerDesc": "Join as a worker to list your services, or as a user to hire.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "role": "Role",
+    "selectRolePlaceholder": "Select a role",
+    "roleUser": "Looking to Hire (User)",
+    "roleWorker": "Looking for Work (Worker)",
+    "registering": "Creating account...",
+    "register": "Register",
+    "hasAccount": "Already have an account?",
+    "signInLink": "Sign in",
+    "emailOrPhone": "Email or Phone Number",
+    "optional": "optional",
+    "phone": "Phone Number",
+    "chooseRegisterType": "Select Registration Type",
+    "cancel": "Cancel",
+    "resetEmailSent": "Password reset link has been sent to your email.",
+    "resetError": "Failed to send reset email. Please check the email address.",
+    "forgotPasswordTitle": "Reset Password",
+    "forgotPasswordDesc": "Enter your email address and we'll send you a link to reset your password.",
+    "sending": "Sending link...",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back to Login"
   }
 }
