@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { mockWorkers } from '../lib/mockData';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { useSearchParams } from 'react-router-dom';
 import { IconMapPin, IconStarFilled, IconPhone } from '@tabler/icons-react';
 
@@ -14,16 +15,58 @@ export default function WorkerProfile() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  const worker = mockWorkers.find(w => w.id === parseInt(id)) || mockWorkers[0];
+  
+  const [worker, setWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchWorker = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, 'workers', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setWorker({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          setWorker(null);
+        }
+      } catch (error) {
+        console.error("Error fetching worker:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWorker();
+  }, [id]);
   
   // Simulation of edit mode for the worker themselves
   const [isEditing, setIsEditing] = useState(false);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!worker) {
+    return (
+      <div className="text-center py-20">
+        <h2 className="text-2xl font-bold tracking-tight">Worker not found</h2>
+        <p className="text-muted-foreground mt-2">The worker profile you are looking for does not exist.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <Card className="glass border-border/40 overflow-hidden shadow-xl">
+      <Card className="glass border-border/40 overflow-hidden border">
         <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/40 to-secondary/20 relative">
-          <Avatar className="h-24 w-24 absolute -bottom-12 left-6 border-4 border-background shadow-lg">
+          <Avatar className="h-24 w-24 absolute -bottom-12 left-6 border-4 border-background">
             <AvatarImage src={worker.avatar} alt={worker.name} />
             <AvatarFallback>{worker.name.substring(0,2)}</AvatarFallback>
           </Avatar>

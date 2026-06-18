@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconSearch } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
+import { IconSearch, IconHammer, IconWall, IconDroplet, IconPlant, IconUsers } from '@tabler/icons-react';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import WorkerCard from '../components/WorkerCard';
-import { mockWorkers } from '../lib/mockData';
-
-const categories = ['all', 'carpenter', 'mason', 'plumber', 'gardener', 'helper'];
 
 export default function Home() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const filteredWorkers = mockWorkers.filter(worker => {
-    const matchesSearch = worker.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          worker.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          worker.bio.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'all' || worker.category.toLowerCase() === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/workers?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate(`/workers`);
+    }
+  };
+
+  const navigateToCategory = (category) => {
+    navigate(`/workers?category=${encodeURIComponent(category)}`);
+  };
 
   return (
     <div className="min-h-screen">
@@ -29,14 +29,14 @@ export default function Home() {
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-br from-primary/20 via-background to-secondary/20 dark:from-primary/10 dark:via-background dark:to-secondary/10">
         <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,transparent,black)] dark:bg-grid-slate-800" />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-6 drop-shadow-sm">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground mb-6">
             {t('hero.title')}
           </h1>
           <p className="mt-4 text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto">
             {t('hero.subtitle')}
           </p>
 
-          <div className="mt-10 max-w-2xl mx-auto glass p-2 rounded-full flex items-center shadow-lg focus-within:ring-2 ring-primary transition-all duration-300">
+          <form onSubmit={handleSearch} className="mt-10 max-w-2xl mx-auto glass p-2 rounded-full flex items-center border border-border/50 focus-within:ring-2 ring-primary transition-all duration-300">
             <div className="pl-4 text-muted-foreground">
               <IconSearch className="h-6 w-6" />
             </div>
@@ -47,42 +47,35 @@ export default function Home() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Button size="lg" className="rounded-full px-8 hidden sm:flex">
+            <Button type="submit" size="lg" className="rounded-full px-8 hidden sm:flex">
               Search
             </Button>
+          </form>
+
+          {/* Browse Categories Quick Links */}
+          <div className="mt-12">
+            <p className="text-sm text-muted-foreground mb-6 font-medium uppercase tracking-wider">{t('categories.browse') || 'Browse Categories'}</p>
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8">
+              {[
+                { id: 'carpenter', icon: <IconHammer className="w-8 h-8 mb-2 text-primary" /> },
+                { id: 'mason', icon: <IconWall className="w-8 h-8 mb-2 text-primary" /> },
+                { id: 'plumber', icon: <IconDroplet className="w-8 h-8 mb-2 text-primary" /> },
+                { id: 'gardener', icon: <IconPlant className="w-8 h-8 mb-2 text-primary" /> },
+                { id: 'helper', icon: <IconUsers className="w-8 h-8 mb-2 text-primary" /> }
+              ].map(cat => (
+                <Button
+                  key={cat.id}
+                  variant="ghost"
+                  className="flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white/60 hover:bg-white dark:bg-black/40 dark:hover:bg-black/60 hover:-translate-y-1 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:border-primary/40 dark:hover:border-primary/40 transition-all duration-300"
+                  onClick={() => navigateToCategory(cat.id)}
+                >
+                  {cat.icon}
+                  <span className="text-sm font-medium text-foreground">{t(`categories.${cat.id}`)}</span>
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Category Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
-          {categories.map(cat => (
-            <Button
-              key={cat}
-              variant={selectedCategory === cat ? "default" : "outline"}
-              className="rounded-full px-6 transition-all duration-300 shadow-sm"
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {t(`categories.${cat}`)}
-            </Button>
-          ))}
-        </div>
-
-        {/* Workers Grid */}
-        {filteredWorkers.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredWorkers.map(worker => (
-              <WorkerCard key={worker.id} worker={worker} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20">
-            <h3 className="text-2xl font-semibold text-muted-foreground">No workers found.</h3>
-            <p className="mt-2 text-muted-foreground">Try adjusting your search query or category.</p>
-          </div>
-        )}
       </section>
     </div>
   );

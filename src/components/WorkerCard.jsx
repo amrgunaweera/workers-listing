@@ -11,7 +11,7 @@ export default function WorkerCard({ worker }) {
 
   return (
     <Link to={`/profile?id=${worker.id}`} className="block group">
-      <Card className="overflow-hidden border-border/40 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 glass bg-white/5 dark:bg-black/20">
+      <Card className="overflow-hidden border-border/40 hover:border-primary/50 transition-all duration-300 glass bg-white/5 dark:bg-black/20 border">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">

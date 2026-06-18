@@ -9,7 +9,7 @@
   "hero": {
     "title": "Find the Best Workers in Your Area",
     "subtitle": "Carpenters, Masons, Plumbers, and more. Connect with skilled professionals today.",
-    "searchPlaceholder": "Search for skills, names, or locations..."
+    "searchPlaceholder": "Search"
   },
   "categories": {
     "all": "All",
@@ -17,12 +17,22 @@
     "mason": "Mason",
     "plumber": "Plumber",
     "gardener": "Gardener",
-    "helper": "Helper"
+    "helper": "Helper",
+    "browse": "Browse Categories"
   },
+  "filters": {
+    "title": "Filters"
+  },
+  "workersList": {
+    "resultsTitle": "Search Results"
+  },
+  "advertisement": "Advertisement",
   "worker": {
     "viewProfile": "View Profile",
     "rating": "Rating",
-    "location": "Location"
+    "location": "Location",
+    "district": "District",
+    "town": "Town"
   },
   "footer": {
     "moreTitle": "More from BestBaas",

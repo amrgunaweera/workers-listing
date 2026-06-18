@@ -9,7 +9,7 @@
   "hero": {
     "title": "ඔබේ ප්‍රදේශයේ හොඳම සේවකයින් සොයා ගන්න",
     "subtitle": "වඩු කාර්මිකයන්, මේසන්වරුන්, නල කාර්මිකයන් සහ තවත් අය. අදම සම්බන්ධ වන්න.",
-    "searchPlaceholder": "කුසලතා, නම් හෝ ස්ථාන සොයන්න..."
+    "searchPlaceholder": "සොයන්න"
   },
   "categories": {
     "all": "සියල්ල",
@@ -17,12 +17,22 @@
     "mason": "මේසන්",
     "plumber": "නල කාර්මිකයා",
     "gardener": "උද්‍යාන පාලක",
-    "helper": "සහායක"
+    "helper": "සහායක",
+    "browse": "ප්‍රවර්ග පිරික්සන්න"
   },
+  "filters": {
+    "title": "පෙරහන්"
+  },
+  "workersList": {
+    "resultsTitle": "සෙවුම් ප්‍රතිඵල"
+  },
+  "advertisement": "දැන්වීම",
   "worker": {
     "viewProfile": "පැතිකඩ බලන්න",
     "rating": "ශ්‍රේණිගත කිරීම",
-    "location": "ස්ථානය"
+    "location": "ස්ථානය",
+    "district": "දිස්ත්‍රික්කය",
+    "town": "නගරය"
   },
   "footer": {
     "moreTitle": "BestBaas වෙතින් තවත් දේ",
@@ -39,7 +49,7 @@
     "careers": "වෘත්තීය අවස්ථා",
     "terms": "නියමයන් සහ කොන්දේසි",
     "privacy": "රහස්‍යතා ප්‍රතිපත්තිය",
-    "sitemap": "අඩවි සිතියම",
+    "sitemap": "අඩවි සිතியම",
     "blogTitle": "බ්ලොග් සහ මාර්ගෝපදේශ",
     "workerGuide": "සේවක මාර්ගෝපදේශය",
     "diyGuides": "DIY මාර්ගෝපදේශ",

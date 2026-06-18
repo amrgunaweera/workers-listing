@@ -1,0 +1,5 @@
+# UI Component Rules
+
+1. **Strict usage of `shadcn/ui` components**: For all components and pages, you MUST use `shadcn` components instead of native HTML elements (e.g., use `<Button>` instead of `<button>`, `<Input>` instead of `<input>`, `<Table>` instead of `<table>`). 
+2. If a required `shadcn` component is not currently installed in `src/components/ui/`, you MUST install it first via the CLI (e.g., `npx shadcn@latest add table`).
+3. Never use generic HTML inputs or buttons for interactive elements. Maintain consistency and aesthetics by adhering exclusively to the `shadcn` library components throughout the application.
