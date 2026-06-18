@@ -70,7 +70,7 @@ async function seed() {
   }
 
   // Now create the new worker: Carpenter named Nimal
-  const nimalEmail = "nimal@bestbaas.com";
+  const nimalEmail = "nimal@bestservicelk.com";
   const nimalPassword = "Worker123!";
   let nimalUser;
 

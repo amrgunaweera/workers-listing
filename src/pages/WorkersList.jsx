@@ -9,8 +9,9 @@ import { Button } from '../components/ui/button';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 import { sriLankaLocations, allDistricts } from '../lib/locations';
+import { categories as importedCategories, normalizeCategory } from '../lib/categories';
 
-const categories = ['all', 'carpenter', 'mason', 'plumber', 'gardener', 'helper'];
+const categories = ['all', ...importedCategories];
 
 export default function WorkersList() {
   const { t } = useTranslation();
@@ -115,7 +116,7 @@ export default function WorkersList() {
                           worker.location?.toLowerCase().includes(query) ||
                           worker.bio?.toLowerCase().includes(query);
     
-    const matchesCategory = selectedCategory === 'all' || worker.category?.toLowerCase() === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || normalizeCategory(worker.category) === selectedCategory;
     
     let matchesDistrict = true;
     let matchesTown = true;
@@ -150,38 +151,38 @@ export default function WorkersList() {
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Sidebar Filters */}
-          <div className="w-full lg:w-64 shrink-0 space-y-6">
-            <div className="p-6 rounded-2xl bg-white dark:bg-card border border-border">
-              <h3 className="text-lg font-semibold mb-4 text-foreground">{t('filters.title') || 'Filters'}</h3>
+          <div className="w-full lg:w-60 shrink-0 space-y-6">
+            <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-border/20">
+              <h3 className="text-xs font-semibold mb-3 text-muted-foreground/70 uppercase tracking-wider">{t('filters.title') || 'Filters'}</h3>
               
               {/* Search Form */}
-              <form onSubmit={handleSearch} className="mb-6 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IconSearch className="h-4 w-4 text-muted-foreground" />
+              <form onSubmit={handleSearch} className="mb-4 relative">
+                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                  <IconSearch className="h-3.5 w-3.5 text-muted-foreground/50" />
                 </div>
                 <Input
                   type="text"
                   placeholder={t('hero.searchPlaceholder') || 'Search...'}
-                  className="pl-10 w-full"
+                  className="pl-8 w-full h-8 text-xs bg-background/50 border-border/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </form>
 
               {/* District Filter */}
-              <div className="mb-4">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block mb-2">
+              <div className="mb-3">
+                <label className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider block mb-1">
                   {t('worker.district') || 'District'}
                 </label>
                 <Select value={selectedDistrict} onValueChange={handleDistrictChange}>
-                  <SelectTrigger className="w-full bg-transparent border-border/80 text-foreground justify-between">
+                  <SelectTrigger className="w-full h-8 text-xs bg-background/50 border-border/60 text-foreground justify-between">
                     <span data-slot="select-value" className="flex flex-1 text-left">
                       {selectedDistrict === 'all' ? t('categories.all') || 'All' : selectedDistrict}
                     </span>
                   </SelectTrigger>
                   <SelectContent className="bg-popover text-popover-foreground">
                     {districts.map(d => (
-                      <SelectItem key={d} value={d}>
+                      <SelectItem key={d} value={d} className="text-xs">
                         {d === 'all' ? t('categories.all') || 'All' : d}
                       </SelectItem>
                     ))}
@@ -190,19 +191,19 @@ export default function WorkersList() {
               </div>
 
               {/* Town Filter */}
-              <div className="mb-6">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block mb-2">
+              <div className="mb-4">
+                <label className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider block mb-1">
                   {t('worker.town') || 'Town'}
                 </label>
                 <Select value={selectedTown} onValueChange={handleTownChange} disabled={selectedDistrict === 'all'}>
-                  <SelectTrigger className="w-full bg-transparent border-border/80 text-foreground justify-between disabled:opacity-50">
+                  <SelectTrigger className="w-full h-8 text-xs bg-background/50 border-border/60 text-foreground justify-between disabled:opacity-50">
                     <span data-slot="select-value" className="flex flex-1 text-left">
                       {selectedTown === 'all' ? t('categories.all') || 'All' : selectedTown}
                     </span>
                   </SelectTrigger>
                   <SelectContent className="bg-popover text-popover-foreground">
                     {towns.map(tw => (
-                      <SelectItem key={tw} value={tw}>
+                      <SelectItem key={tw} value={tw} className="text-xs">
                         {tw === 'all' ? t('categories.all') || 'All' : tw}
                       </SelectItem>
                     ))}
@@ -212,13 +213,13 @@ export default function WorkersList() {
 
               {/* Categories */}
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">{t('categories.browse') || 'Categories'}</h4>
-                <div className="space-y-2 flex flex-col">
+                <h4 className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">{t('categories.browse') || 'Categories'}</h4>
+                <div className="space-y-1 flex flex-col">
                   {categories.map(cat => (
                     <Button
                       key={cat}
                       variant={selectedCategory === cat ? "secondary" : "ghost"}
-                      className={`justify-start w-full transition-colors ${selectedCategory === cat ? 'bg-primary/10 text-primary font-medium' : ''}`}
+                      className={`justify-start w-full h-8 text-xs transition-colors ${selectedCategory === cat ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/80 hover:text-foreground'}`}
                       onClick={() => handleCategoryChange(cat)}
                     >
                       {t(`categories.${cat}`)}
@@ -309,13 +310,13 @@ export default function WorkersList() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </div>
             ) : filteredWorkers.length > 0 ? (
-              <div className="flex flex-col border-t border-border/40">
+              <div className="flex flex-col gap-4">
                 {filteredWorkers.map(worker => (
                   <WorkerListItem key={worker.id} worker={worker} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 glass rounded-2xl bg-white/5 dark:bg-black/20 border border-border/50">
+              <div className="text-center py-20 rounded-xl bg-card border border-border/40 shadow-sm">
                 <h3 className="text-xl font-semibold text-foreground mb-2">No workers found</h3>
                 <p className="text-muted-foreground mb-6">Try adjusting your search query or filters.</p>
                 <Button 
@@ -332,28 +333,26 @@ export default function WorkersList() {
             )}
           </div>
 
-          {/* Right Sidebar Advert */}
+          {/* Right Sidebar Advert (Less Prominent) */}
           <div className="w-full lg:w-60 shrink-0">
-            <div className="glass p-4 rounded-2xl bg-white/5 dark:bg-black/20 border border-border/50 text-center sticky top-24">
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest block mb-3">
+            <div className="p-3 rounded-xl bg-card border border-border/30 text-center">
+              <span className="text-[9px] font-semibold text-muted-foreground/40 uppercase tracking-widest block mb-2 select-none">
                 {t('advertisement') || 'Advertisement'}
               </span>
-              {/* Google Ads Placeholder container */}
-              <div className="relative flex flex-col items-center justify-center min-h-[500px] w-full rounded-xl bg-muted/30 border border-dashed border-border/70 overflow-hidden group/ad hover:border-primary/40 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5 opacity-50 group-hover/ad:opacity-100 transition-opacity duration-300" />
-                <div className="relative z-10 px-4 text-center">
-                  {/* Styled Google Ads text */}
-                  <div className="font-semibold text-sm tracking-wider text-muted-foreground group-hover/ad:text-primary transition-colors">
+              {/* Google Ads Placeholder container - non-prominent styling */}
+              <div className="relative flex flex-col items-center justify-center h-[200px] w-full rounded-lg bg-muted/5 border border-dashed border-border/30 overflow-hidden">
+                <div className="relative z-10 px-2 text-center select-none pointer-events-none">
+                  <div className="font-semibold text-xs tracking-wider text-muted-foreground/40">
                     Google Ads
                   </div>
-                  <div className="text-xs text-muted-foreground/60 mt-1 max-w-[150px] mx-auto">
-                    Responsive Skyscraper Banner Placement
+                  <div className="text-[10px] text-muted-foreground/30 mt-0.5">
+                    Ad Placement
                   </div>
                 </div>
                 {/* Simulated tiny AdChoices icon */}
-                <div className="absolute top-1.5 right-1.5 bg-background/80 dark:bg-foreground/10 px-1.5 py-0.5 rounded text-[8px] font-sans text-muted-foreground/80 flex items-center gap-0.5 pointer-events-none select-none">
+                <div className="absolute top-1 right-1 bg-background/20 dark:bg-foreground/5 px-1 py-0.2 rounded text-[6px] font-sans text-muted-foreground/30 flex items-center gap-0.5 pointer-events-none select-none">
                   <span>AdChoices</span>
-                  <span className="text-[6px] font-bold">ⓘ</span>
+                  <span className="text-[5px] font-bold">ⓘ</span>
                 </div>
               </div>
             </div>

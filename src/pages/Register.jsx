@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Button } from '../components/ui/button';
+import { IconBriefcase } from '@tabler/icons-react';
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +37,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      const registerEmail = email.trim() || `worker-${phone.trim()}@bestbaas.com`;
+      const registerEmail = email.trim() || `worker-${phone.trim()}@bestservicelk.com`;
       const userCredential = await createUserWithEmailAndPassword(auth, registerEmail, password);
       const user = userCredential.user;
       
@@ -72,9 +73,16 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/10">
-      <Card className="w-full max-w-md bg-white dark:bg-zinc-950 border-border/40 border shadow-md [--card-spacing:--spacing(6)]">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/10 relative overflow-hidden">
+      {/* Decorative orbs */}
+      <div className="gradient-orb w-[350px] h-[350px] bg-accent/20 top-[-80px] left-[-100px]" />
+      <div className="gradient-orb w-[300px] h-[300px] bg-primary/15 bottom-[-80px] right-[-80px]" />
+
+      <Card className="relative w-full max-w-md bg-card border-border/40 border shadow-xl [--card-spacing:--spacing(6)]">
         <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto mb-2 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <IconBriefcase className="h-5 w-5 text-primary" />
+          </div>
           <CardTitle className="text-3xl font-bold tracking-tight">{t('auth.registerTitle')}</CardTitle>
           <CardDescription>
             {t('auth.registerDesc')}

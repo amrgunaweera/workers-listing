@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
+import { normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { IconStarFilled, IconMapPin } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
@@ -26,7 +27,7 @@ export default function WorkerCard({ worker }) {
                   {worker.name}
                 </h3>
                 <Badge variant="secondary" className="mt-1 font-normal bg-primary/10 text-primary hover:bg-primary/20">
-                  {t(`categories.${worker.category.toLowerCase()}`)}
+                  {t(`categories.${normalizeCategory(worker.category)}`)}
                 </Badge>
               </div>
             </div>

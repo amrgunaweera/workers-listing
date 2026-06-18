@@ -5,6 +5,7 @@ import { Label } from '../components/ui/label';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { IconBriefcase } from '@tabler/icons-react';
 
 import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -27,7 +28,7 @@ export default function Login() {
     try {
       let loginEmail = email.trim();
       if (/^\+?[0-9]+$/.test(loginEmail)) {
-        loginEmail = `worker-${loginEmail}@bestbaas.com`;
+        loginEmail = `worker-${loginEmail}@bestservicelk.com`;
       }
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, password);
       const user = userCredential.user;
@@ -51,9 +52,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-background to-primary/5">
-      <Card className="w-full max-w-md bg-white dark:bg-zinc-950 border-border/40 border shadow-md [--card-spacing:--spacing(6)]">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
+      {/* Decorative orbs */}
+      <div className="gradient-orb w-[400px] h-[400px] bg-primary/15 top-[-100px] right-[-100px]" />
+      <div className="gradient-orb w-[250px] h-[250px] bg-accent/20 bottom-[-50px] left-[-50px]" />
+
+      <Card className="relative w-full max-w-md bg-card border-border/40 border shadow-xl [--card-spacing:--spacing(6)]">
         <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto mb-2 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <IconBriefcase className="h-5 w-5 text-primary" />
+          </div>
           <CardTitle className="text-3xl font-bold tracking-tight">{t('auth.loginTitle')}</CardTitle>
           <CardDescription>
             {t('auth.loginDesc')}
@@ -94,7 +102,7 @@ export default function Login() {
 
       {showRoleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-zinc-950 p-6 rounded-lg border border-border shadow-2xl w-full max-w-sm mx-4 animate-in zoom-in-95 duration-200">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-2xl w-full max-w-sm mx-4 animate-in zoom-in-95 duration-200">
             <h3 className="text-xl font-semibold text-center mb-4 text-foreground">
               {t('auth.chooseRegisterType')}
             </h3>
@@ -104,7 +112,7 @@ export default function Login() {
                   setShowRoleModal(false);
                   navigate('/register?role=user');
                 }}
-                className="w-full py-3 px-4 rounded-md border border-border bg-background hover:bg-zinc-100 dark:hover:bg-zinc-900 font-medium text-sm transition-colors text-left flex justify-between items-center cursor-pointer"
+                className="w-full py-3 px-4 rounded-lg border border-border bg-background hover:bg-muted font-medium text-sm transition-colors text-left flex justify-between items-center cursor-pointer"
               >
                 <span>{t('nav.needService')}</span>
                 <span className="text-muted-foreground text-xs font-normal">→</span>
@@ -114,7 +122,7 @@ export default function Login() {
                   setShowRoleModal(false);
                   navigate('/register?role=worker');
                 }}
-                className="w-full py-3 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm transition-colors text-left flex justify-between items-center cursor-pointer"
+                className="w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm transition-colors text-left flex justify-between items-center cursor-pointer"
               >
                 <span>{t('nav.provideService')}</span>
                 <span className="text-primary-foreground/85 text-xs font-normal">→</span>

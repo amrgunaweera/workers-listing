@@ -16,7 +16,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 async function createAdmin() {
-  const email = "admin@bestbaas.com";
+  const email = "admin@bestservicelk.com";
   const password = "Admin123!";
   let user;
 

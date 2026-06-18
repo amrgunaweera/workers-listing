@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
+import { normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -64,23 +65,24 @@ export default function WorkerProfile() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <Card className="glass border-border/40 overflow-hidden border">
-        <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/40 to-secondary/20 relative">
-          <Avatar className="h-24 w-24 absolute -bottom-12 left-6 border-4 border-background">
+      <Card className="border-border/40 overflow-hidden border shadow-lg bg-card">
+        {/* Taller, richer gradient banner */}
+        <div className="h-40 bg-gradient-to-r from-primary/25 via-primary/40 to-accent/20 relative">
+          <Avatar className="h-28 w-28 absolute -bottom-14 left-8 border-4 border-background ring-4 ring-primary/20">
             <AvatarImage src={worker.avatar} alt={worker.name} />
-            <AvatarFallback>{worker.name.substring(0,2)}</AvatarFallback>
+            <AvatarFallback className="text-xl font-bold">{worker.name.substring(0,2)}</AvatarFallback>
           </Avatar>
         </div>
         
-        <CardContent className="pt-16 pb-8 px-6 sm:px-10">
+        <CardContent className="pt-18 pb-8 px-8 sm:px-10">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{worker.name}</h1>
               <div className="flex items-center gap-3 mt-2">
                 <Badge variant="default" className="text-sm">
-                  {t(`categories.${worker.category.toLowerCase()}`)}
+                  {t(`categories.${normalizeCategory(worker.category)}`)}
                 </Badge>
-                <div className="flex items-center gap-1 text-yellow-500 font-medium bg-yellow-500/10 px-2 py-0.5 rounded">
+                <div className="flex items-center gap-1 text-yellow-500 font-medium bg-yellow-500/10 px-2.5 py-0.5 rounded-md">
                   <IconStarFilled className="h-4 w-4" />
                   {worker.rating}
                 </div>
@@ -100,7 +102,7 @@ export default function WorkerProfile() {
           </div>
 
           <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-3">About Me</h3>
+            <h3 className="text-lg font-semibold mb-3">About Me</h3>
             {isEditing ? (
               <div className="space-y-4">
                 <div className="space-y-2">
