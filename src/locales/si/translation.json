@@ -1,6 +1,7 @@
 {
   "nav": {
     "home": "මුල් පිටුව",
+    "allAds": "සියලුම දැන්වීම්",
     "login": "පුරනය වන්න",
     "register": "ලියාපදිංචි වන්න",
     "dashboard": "පාලක පුවරුව"
@@ -22,5 +23,28 @@
     "viewProfile": "පැතිකඩ බලන්න",
     "rating": "ශ්‍රේණිගත කිරීම",
     "location": "ස්ථානය"
+  },
+  "footer": {
+    "moreTitle": "BestBaas වෙතින් තවත් දේ",
+    "postJob": "රැකියාවක් පළ කරන්න",
+    "membership": "සාමාජිකත්වය",
+    "bannerAds": "බැනර් දැන්වීම්",
+    "boostProfile": "පැතිකඩ ප්‍රවර්ධනය කරන්න",
+    "helpTitle": "උදවු සහ සහාය",
+    "faq": "නිතර අසන ප්‍රශ්න (FAQ)",
+    "staySafe": "ආරක්ෂිතව සිටින්න",
+    "contactUs": "අප අමතන්න",
+    "aboutTitle": "BestBaas ගැන",
+    "aboutUs": "අප ගැන",
+    "careers": "වෘත්තීය අවස්ථා",
+    "terms": "නියමයන් සහ කොන්දේසි",
+    "privacy": "රහස්‍යතා ප්‍රතිපත්තිය",
+    "sitemap": "අඩවි සිතියම",
+    "blogTitle": "බ්ලොග් සහ මාර්ගෝපදේශ",
+    "workerGuide": "සේවක මාර්ගෝපදේශය",
+    "diyGuides": "DIY මාර්ගෝපදේශ",
+    "officialBlog": "නිල බ්ලොග් අඩවිය",
+    "downloadTitle": "අපගේ ඇප් එක බාගත කරන්න",
+    "copyright": "© {{year}}. සියලුම හිමිකම් ඇවිරිණි. BestBaas Technologies"
   }
 }

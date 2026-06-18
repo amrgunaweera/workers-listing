@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { IconMenu2, IconX, IconBriefcase, IconGlobe } from '@tabler/icons-react';
+import { 
+  IconMenu2, 
+  IconX, 
+  IconBriefcase, 
+  IconGlobe, 
+  IconBrandFacebook, 
+  IconBrandX, 
+  IconBrandTiktok, 
+  IconBrandYoutube, 
+  IconBrandGooglePlay, 
+  IconBrandApple 
+} from '@tabler/icons-react';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -26,17 +37,26 @@ function Navbar() {
     <nav className="fixed w-full z-50 top-0 border-b border-white/10 glass bg-white/5 dark:bg-black/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center gap-6">
+            {/* Logo */}
             <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-tight text-primary">
               <IconBriefcase className="h-6 w-6" />
-              <span className="hidden sm:block">WorkLink</span>
+              <span className="hidden sm:block">BestBaas</span>
             </Link>
-          </div>
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+            {/* Home and All Ads links next to logo */}
+            <div className="hidden md:flex items-center space-x-2">
               <Link to="/" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 {t('nav.home')}
               </Link>
+              <Link to="/" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                {t('nav.allAds')}
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Login & Register on the right */}
+            <div className="hidden md:flex items-center space-x-2">
               <Link to="/login" className="hover:bg-primary/10 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 {t('nav.login')}
               </Link>
@@ -44,8 +64,8 @@ function Navbar() {
                 {t('nav.register')}
               </Link>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
+
+            {/* Language Selector */}
             <Button variant="outline" size="sm" onClick={toggleLanguage} className="gap-2 hidden sm:flex">
               <IconGlobe className="h-4 w-4" />
               {currentLangLabel}
@@ -68,6 +88,9 @@ function Navbar() {
             <Link to="/" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
               {t('nav.home')}
             </Link>
+            <Link to="/" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
+              {t('nav.allAds')}
+            </Link>
             <Link to="/login" onClick={() => setIsOpen(false)} className="hover:bg-primary/10 block px-3 py-2 rounded-md text-base font-medium">
               {t('nav.login')}
             </Link>
@@ -86,9 +109,95 @@ function Navbar() {
 }
 
 function Footer() {
+  const { t } = useTranslation();
   return (
-    <footer className="border-t border-border mt-auto py-8 text-center text-sm text-muted-foreground">
-      <p>&copy; {new Date().getFullYear()} WorkLink. All rights reserved.</p>
+    <footer className="w-full border-t border-border bg-zinc-200/50 dark:bg-zinc-950/70 mt-auto pt-16 pb-8 text-sm text-muted-foreground">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12 text-left">
+          {/* Column 1: More from BestBaas */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4">{t('footer.moreTitle')}</h4>
+            <ul className="space-y-2">
+              <li><Link to="/register" className="hover:text-primary transition-colors">{t('footer.postJob')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.membership')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.bannerAds')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.boostProfile')}</Link></li>
+            </ul>
+          </div>
+
+          {/* Column 2: Help & Support */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4">{t('footer.helpTitle')}</h4>
+            <ul className="space-y-2">
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.faq')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.staySafe')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.contactUs')}</Link></li>
+            </ul>
+          </div>
+
+          {/* Column 3: About BestBaas */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4">{t('footer.aboutTitle')}</h4>
+            <ul className="space-y-2">
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.aboutUs')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.careers')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.terms')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.privacy')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.sitemap')}</Link></li>
+            </ul>
+          </div>
+
+          {/* Column 4: Blog & Guides */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4">{t('footer.blogTitle')}</h4>
+            <ul className="space-y-2 mb-4">
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.workerGuide')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.diyGuides')}</Link></li>
+              <li><Link to="#" className="hover:text-primary transition-colors">{t('footer.officialBlog')}</Link></li>
+            </ul>
+            <div className="flex space-x-3">
+              <a href="#" className="hover:text-primary transition-colors"><IconBrandFacebook className="h-5 w-5" /></a>
+              <a href="#" className="hover:text-primary transition-colors"><IconBrandX className="h-5 w-5" /></a>
+              <a href="#" className="hover:text-primary transition-colors"><IconBrandTiktok className="h-5 w-5" /></a>
+              <a href="#" className="hover:text-primary transition-colors"><IconBrandYoutube className="h-5 w-5" /></a>
+            </div>
+          </div>
+
+          {/* Column 5: Download our app */}
+          <div className="col-span-2 md:col-span-1">
+            <h4 className="font-semibold text-foreground mb-4">{t('footer.downloadTitle')}</h4>
+            <div className="flex flex-col space-y-3">
+              {/* Google Play Button */}
+              <a href="#" className="flex items-center gap-2 bg-black border border-white/20 hover:border-white/40 text-white px-3 py-2 rounded-lg transition-colors w-full sm:max-w-[160px]">
+                <IconBrandGooglePlay className="h-6 w-6 text-primary" />
+                <div className="text-left leading-none">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">GET IT ON</span>
+                  <span className="text-xs font-semibold block">Google Play</span>
+                </div>
+              </a>
+              {/* App Store Button */}
+              <a href="#" className="flex items-center gap-2 bg-black border border-white/20 hover:border-white/40 text-white px-3 py-2 rounded-lg transition-colors w-full sm:max-w-[160px]">
+                <IconBrandApple className="h-6 w-6 text-white" />
+                <div className="text-left leading-none">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">Download on the</span>
+                  <span className="text-xs font-semibold block">App Store</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-zinc-500">
+            {t('footer.copyright', { year: new Date().getFullYear() })}
+          </p>
+          <Link to="/" className="flex items-center gap-2 text-lg font-bold text-foreground hover:text-primary transition-colors">
+            <IconBriefcase className="h-5 w-5 text-primary" />
+            <span>BestBaas</span>
+          </Link>
+        </div>
+      </div>
     </footer>
   );
 }

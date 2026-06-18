@@ -1,6 +1,7 @@
 {
   "nav": {
     "home": "Home",
+    "allAds": "All Ads",
     "login": "Login",
     "register": "Register",
     "dashboard": "Dashboard"
@@ -22,5 +23,28 @@
     "viewProfile": "View Profile",
     "rating": "Rating",
     "location": "Location"
+  },
+  "footer": {
+    "moreTitle": "More from BestBaas",
+    "postJob": "Post a Job",
+    "membership": "Membership",
+    "bannerAds": "Banner Ads",
+    "boostProfile": "Boost Profile",
+    "helpTitle": "Help & Support",
+    "faq": "FAQ",
+    "staySafe": "Stay safe",
+    "contactUs": "Contact Us",
+    "aboutTitle": "About BestBaas",
+    "aboutUs": "About Us",
+    "careers": "Careers",
+    "terms": "Terms and Conditions",
+    "privacy": "Privacy policy",
+    "sitemap": "Sitemap",
+    "blogTitle": "Blog & Guides",
+    "workerGuide": "Worker Guide",
+    "diyGuides": "DIY Guides",
+    "officialBlog": "Official Blog",
+    "downloadTitle": "Download our app",
+    "copyright": "© {{year}}. All rights reserved. BestBaas Technologies"
   }
 }
