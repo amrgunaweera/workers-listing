@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard"
+  },
+  "hero": {
+    "title": "Find the Best Workers in Your Area",
+    "subtitle": "Carpenters, Masons, Plumbers, and more. Connect with skilled professionals today.",
+    "searchPlaceholder": "Search for skills, names, or locations..."
+  },
+  "categories": {
+    "all": "All",
+    "carpenter": "Carpenter",
+    "mason": "Mason",
+    "plumber": "Plumber",
+    "gardener": "Gardener",
+    "helper": "Helper"
+  },
+  "worker": {
+    "viewProfile": "View Profile",
+    "rating": "Rating",
+    "location": "Location"
+  }
+}
