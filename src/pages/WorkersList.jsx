@@ -25,6 +25,10 @@ export default function WorkersList() {
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [prevQueryParam, setPrevQueryParam] = useState(queryParam);
 
+  const sortedCategories = useMemo(() => {
+    return ['all', ...[...importedCategories].sort((a, b) => t(`categories.${a}`).localeCompare(t(`categories.${b}`)))];
+  }, [t]);
+
   if (queryParam !== prevQueryParam) {
     setPrevQueryParam(queryParam);
     setSearchQuery(queryParam);
@@ -111,10 +115,12 @@ export default function WorkersList() {
   }, [workers, selectedDistrict]);
 
   const filteredWorkers = workers.filter(worker => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = worker.name?.toLowerCase().includes(query) || 
-                          worker.location?.toLowerCase().includes(query) ||
-                          worker.bio?.toLowerCase().includes(query);
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query || 
+                          String(worker.name || '').toLowerCase().includes(query) || 
+                          String(worker.location || '').toLowerCase().includes(query) ||
+                          String(worker.bio || '').toLowerCase().includes(query) ||
+                          String(worker.category || '').toLowerCase().includes(query);
     
     const matchesCategory = selectedCategory === 'all' || normalizeCategory(worker.category) === selectedCategory;
     
@@ -157,12 +163,12 @@ export default function WorkersList() {
               
               {/* Search Form */}
               <form onSubmit={handleSearch} className="mb-4 relative">
-                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                  <IconSearch className="h-3.5 w-3.5 text-muted-foreground/50" />
-                </div>
+                <button type="submit" className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer focus:outline-none">
+                  <IconSearch className="h-3.5 w-3.5" />
+                </button>
                 <Input
                   type="text"
-                  placeholder={t('hero.searchPlaceholder') || 'Search...'}
+                  placeholder={t('hero.searchPlaceholder', 'Search...')}
                   className="pl-8 w-full h-8 text-xs bg-background/50 border-border/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -214,12 +220,12 @@ export default function WorkersList() {
               {/* Categories */}
               <div>
                 <h4 className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">{t('categories.browse') || 'Categories'}</h4>
-                <div className="space-y-1 flex flex-col">
-                  {categories.map(cat => (
+                <div className="space-y-1 flex flex-col max-h-[350px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
+                  {sortedCategories.map(cat => (
                     <Button
                       key={cat}
                       variant={selectedCategory === cat ? "secondary" : "ghost"}
-                      className={`justify-start w-full h-8 text-xs transition-colors ${selectedCategory === cat ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/80 hover:text-foreground'}`}
+                      className={`justify-start w-full h-8 shrink-0 text-xs transition-colors ${selectedCategory === cat ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/80 hover:text-foreground'}`}
                       onClick={() => handleCategoryChange(cat)}
                     >
                       {t(`categories.${cat}`)}

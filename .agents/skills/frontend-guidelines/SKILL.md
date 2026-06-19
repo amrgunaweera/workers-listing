@@ -35,3 +35,4 @@ Read this skill whenever starting a new frontend task or UI refactor.
 ## Common Mistakes
 - Silently building a custom native `<button className="...">` when the shadcn `<Button>` could easily be used or installed.
 - Forgetting to import the component from `src/components/ui/...` after installing it.
+- Using invalid i18next fallback syntax like `{t('key') || 'Fallback'}`. This causes the translation key itself to render if the translation is missing. Always use the built-in i18next fallback syntax: `{t('key', 'Fallback String')}`.
