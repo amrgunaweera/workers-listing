@@ -5,6 +5,8 @@
     "login": "Login",
     "register": "Register",
     "dashboard": "Dashboard",
+    "myProfile": "My Profile",
+    "signOut": "Sign Out",
     "needService": "Need Service",
     "provideService": "Provide Service"
   },
@@ -128,6 +130,21 @@
     "forgotPasswordDesc": "Enter your email address and we'll send you a link to reset your password.",
     "sending": "Sending link...",
     "sendResetLink": "Send Reset Link",
-    "backToLogin": "Back to Login"
+    "backToLogin": "Back to Login",
+    "confirmPassword": "Confirm Password",
+    "validation": {
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "emailRequired": "Email address is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "emailOrPhoneRequired": "Please provide at least an email or phone number.",
+      "emailOrPhoneFieldRequired": "Email or phone number is required.",
+      "phoneRequired": "Phone number is required for workers.",
+      "phoneInvalid": "Please enter a valid phone number.",
+      "passwordRequired": "Password is required.",
+      "passwordMin": "Password must be at least 6 characters.",
+      "confirmPasswordRequired": "Please confirm your password.",
+      "passwordsMustMatch": "Passwords do not match."
+    }
   }
 }

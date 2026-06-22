@@ -1,51 +1,82 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { IconBriefcase } from '@tabler/icons-react';
+import { IconBriefcase, IconEye, IconEyeOff } from '@tabler/icons-react';
 
 import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+const buildSchema = (t) =>
+  z.object({
+    emailOrPhone: z
+      .string()
+      .min(1, t('auth.validation.emailOrPhoneFieldRequired')),
+    password: z.string().min(1, t('auth.validation.passwordRequired')),
+  });
 
 export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [error, setError] = React.useState('');
+  const { currentUser, userRole } = useAuth();
+  const [serverError, setServerError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [showRoleModal, setShowRoleModal] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+  useEffect(() => {
+    if (currentUser && userRole) {
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
+    }
+  }, [currentUser, userRole, navigate]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(buildSchema(t)),
+    defaultValues: {
+      emailOrPhone: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data) => {
+    setServerError('');
     setLoading(true);
     try {
-      let loginEmail = email.trim();
+      let loginEmail = data.emailOrPhone.trim();
       if (/^\+?[0-9]+$/.test(loginEmail)) {
         loginEmail = `worker-${loginEmail}@bestservicelk.com`;
       }
-      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, password);
+      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, data.password);
       const user = userCredential.user;
-      
-      // Check if user is admin
+
       const docRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(docRef);
-      
+
       if (docSnap.exists() && docSnap.data().role === 'admin') {
         navigate('/admin');
       } else {
-        // Just navigate to home for regular users for now
-        navigate('/');
+        navigate('/profile');
       }
     } catch (err) {
       console.error(err);
-      setError(t('auth.loginError'));
+      setServerError(t('auth.loginError'));
     } finally {
       setLoading(false);
     }
@@ -68,11 +99,24 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && <div className="p-3 mb-4 text-sm text-red-500 bg-red-100/10 border border-red-500/20 rounded-md">{error}</div>}
-          <form onSubmit={handleLogin} className="space-y-4">
+          {serverError && (
+            <div className="p-3 mb-4 text-sm text-red-500 bg-red-100/10 border border-red-500/20 rounded-md">
+              {serverError}
+            </div>
+          )}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">{t('auth.emailOrPhone')}</Label>
-              <Input id="email" type="text" value={email} onChange={e => setEmail(e.target.value)} placeholder="john.doe@example.com or 0712345678" required className="bg-background/50" />
+              <Label htmlFor="emailOrPhone">{t('auth.emailOrPhone')}</Label>
+              <Input
+                id="emailOrPhone"
+                type="text"
+                placeholder="john.doe@example.com or 0712345678"
+                className={`bg-background/50 ${errors.emailOrPhone ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                {...register('emailOrPhone')}
+              />
+              {errors.emailOrPhone && (
+                <p className="text-xs text-red-500 mt-1">{errors.emailOrPhone.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -81,17 +125,36 @@ export default function Login() {
                   {t('auth.forgotPassword')}
                 </Link>
               </div>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="bg-background/50" />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={`bg-background/50 pr-10 ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+              )}
             </div>
             <Button className="w-full mt-4" type="submit" disabled={loading}>
               {loading ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
-          
+
           <div className="mt-6 text-center text-sm text-muted-foreground">
             {t('auth.noAccount')}{' '}
-            <button 
-              onClick={() => setShowRoleModal(true)} 
+            <button
+              onClick={() => setShowRoleModal(true)}
               className="font-medium text-primary hover:underline cursor-pointer bg-transparent border-0 p-0"
             >
               {t('auth.registerNow')}

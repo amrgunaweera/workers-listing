@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Badge } from './ui/badge';
 import { normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { IconStarFilled, IconMapPin } from '@tabler/icons-react';
+import { IconMapPin } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 
 export default function WorkerListItem({ worker }) {
@@ -30,14 +30,29 @@ export default function WorkerListItem({ worker }) {
                 <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors truncate">
                   {worker.name}
                 </h3>
-                <Badge variant="secondary" className="font-normal text-xs bg-primary/10 text-primary hover:bg-primary/20">
-                  {t(`categories.${normalizeCategory(worker.category)}`)}
-                </Badge>
+                {(Array.isArray(worker.categories) && worker.categories.length > 0
+                  ? worker.categories
+                  : [worker.category]
+                ).filter(Boolean).map(cat => (
+                  <Badge key={cat} variant="secondary" className="font-normal text-xs bg-primary/10 text-primary hover:bg-primary/20">
+                    {t(`categories.${normalizeCategory(cat)}`)}
+                  </Badge>
+                ))}
               </div>
               
               <div className="mt-1.5 flex items-center gap-1.5 text-muted-foreground text-sm">
                 <IconMapPin className="h-3.5 w-3.5 shrink-0 text-primary/60" />
-                <span className="truncate">{worker.location}</span>
+                <span className="truncate">
+                  {Array.isArray(worker.locations) && worker.locations.length > 0 ? (
+                    worker.locations.map((loc, idx) => (
+                      <span key={idx}>
+                        {loc.town}{idx < worker.locations.length - 1 ? ', ' : ''}
+                      </span>
+                    ))
+                  ) : (
+                    worker.location
+                  )}
+                </span>
               </div>
               
               <p className="mt-2 text-sm text-muted-foreground/80 line-clamp-1 sm:line-clamp-2 leading-relaxed">
@@ -46,14 +61,10 @@ export default function WorkerListItem({ worker }) {
             </div>
           </div>
 
-          {/* Right side: Rating & Action */}
-          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-border/20">
-            <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-3 py-1.5 rounded-lg text-sm font-bold border border-yellow-500/10 shadow-sm">
-              <IconStarFilled className="h-4 w-4 text-yellow-500" />
-              <span>{worker.rating}</span>
-            </div>
-            <span className="text-xs text-primary font-semibold group-hover:underline hidden sm:inline-block mt-2">
-              {t('worker.viewProfile') || 'View Profile'} &rarr;
+          {/* Right side: Action */}
+          <div className="hidden sm:flex sm:flex-col items-end justify-center gap-2 shrink-0">
+            <span className="text-xs text-primary font-semibold group-hover:underline mt-2">
+              {t('worker.viewProfile', 'View Profile')} &rarr;
             </span>
           </div>
 

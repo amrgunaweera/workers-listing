@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   IconMenu2, 
@@ -11,7 +11,9 @@ import {
   IconBrandTiktok, 
   IconBrandYoutube, 
   IconBrandGooglePlay, 
-  IconBrandApple 
+  IconBrandApple,
+  IconUser,
+  IconShieldCheck
 } from '@tabler/icons-react';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -20,11 +22,24 @@ import WorkerProfile from './pages/WorkerProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import WorkersList from './pages/WorkersList';
 import ForgotPassword from './pages/ForgotPassword';
+import { auth } from './lib/firebase';
+import { signOut } from 'firebase/auth';
+
 import { Button } from './components/ui/button';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { RequireAuth, RequireAdmin } from './components/ProtectedRoute';
 
 function Navbar() {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const { currentUser, userRole } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setIsOpen(false);
+    navigate('/login');
+  };
 
   const handleLanguageChange = (value) => {
     i18n.changeLanguage(value);
@@ -54,17 +69,47 @@ function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Login & Register */}
+            {/* Auth links */}
             <div className="hidden md:flex items-center gap-1">
-              <Link to="/login" className="hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground">
-                {t('nav.login')}
-              </Link>
-              <Link to="/register?role=user" className="hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground">
-                {t('nav.needService')}
-              </Link>
-              <Link to="/register?role=worker" className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-colors">
-                {t('nav.provideService')}
-              </Link>
+              {currentUser ? (
+                <>
+                  {userRole === 'admin' ? (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1.5 hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+                    >
+                      <IconShieldCheck className="h-4 w-4" />
+                      {t('nav.dashboard')}
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-1.5 hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+                    >
+                      <IconUser className="h-4 w-4" />
+                      {t('nav.myProfile', 'My Profile')}
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {t('nav.signOut', 'Sign Out')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/register?role=user" className="hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground">
+                    {t('nav.needService')}
+                  </Link>
+                  <Link to="/register?role=worker" className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-colors">
+                    {t('nav.provideService')}
+                  </Link>
+                  <Link to="/login" className="hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground">
+                    {t('nav.login')}
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Language Selector */}
@@ -119,15 +164,40 @@ function Navbar() {
             <Link to="/workers" onClick={() => setIsOpen(false)} className="hover:bg-muted block px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
               {t('nav.allAds')}
             </Link>
-            <Link to="/login" onClick={() => setIsOpen(false)} className="hover:bg-muted block px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
-              {t('nav.login')}
-            </Link>
-            <Link to="/register?role=user" onClick={() => setIsOpen(false)} className="hover:bg-muted block px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
-              {t('nav.needService')}
-            </Link>
-            <Link to="/register?role=worker" onClick={() => setIsOpen(false)} className="bg-primary text-primary-foreground block px-3 py-2.5 rounded-lg text-base font-medium text-center mt-1">
-              {t('nav.provideService')}
-            </Link>
+
+            {currentUser ? (
+              <>
+                {userRole === 'admin' ? (
+                  <Link to="/admin" onClick={() => setIsOpen(false)} className="hover:bg-muted flex items-center gap-2 px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
+                    <IconShieldCheck className="h-4 w-4" />
+                    {t('nav.dashboard')}
+                  </Link>
+                ) : (
+                  <Link to="/profile" onClick={() => setIsOpen(false)} className="hover:bg-muted flex items-center gap-2 px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
+                    <IconUser className="h-4 w-4" />
+                    {t('nav.myProfile', 'My Profile')}
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="hover:bg-muted text-muted-foreground hover:text-foreground block px-3 py-2.5 rounded-lg text-base font-medium text-center mt-1 cursor-pointer transition-colors"
+                >
+                  {t('nav.signOut', 'Sign Out')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/register?role=user" onClick={() => setIsOpen(false)} className="hover:bg-muted block px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
+                  {t('nav.needService')}
+                </Link>
+                <Link to="/register?role=worker" onClick={() => setIsOpen(false)} className="bg-primary text-primary-foreground block px-3 py-2.5 rounded-lg text-base font-medium text-center mt-1">
+                  {t('nav.provideService')}
+                </Link>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="hover:bg-muted block px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
+                  {t('nav.login')}
+                </Link>
+              </>
+            )}
             
             <div className="px-3 py-2 flex flex-col gap-2 mt-2">
               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
@@ -137,10 +207,7 @@ function Navbar() {
               <div className="flex w-full items-center rounded-lg border border-border/60 overflow-hidden bg-muted/50">
                 {currentLang !== 'en' && (
                   <button
-                    onClick={() => {
-                      handleLanguageChange('en');
-                      setIsOpen(false);
-                    }}
+                    onClick={() => { handleLanguageChange('en'); setIsOpen(false); }}
                     className="flex-1 text-center py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
                     English
@@ -148,10 +215,7 @@ function Navbar() {
                 )}
                 {currentLang !== 'si' && (
                   <button
-                    onClick={() => {
-                      handleLanguageChange('si');
-                      setIsOpen(false);
-                    }}
+                    onClick={() => { handleLanguageChange('si'); setIsOpen(false); }}
                     className={`flex-1 text-center py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted ${
                       currentLang !== 'en' ? 'border-l border-border/60' : ''
                     }`}
@@ -161,10 +225,7 @@ function Navbar() {
                 )}
                 {currentLang !== 'ta' && (
                   <button
-                    onClick={() => {
-                      handleLanguageChange('ta');
-                      setIsOpen(false);
-                    }}
+                    onClick={() => { handleLanguageChange('ta'); setIsOpen(false); }}
                     className="flex-1 text-center py-2 text-sm font-medium border-l border-border/60 transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
                     தமிழ்
@@ -238,7 +299,6 @@ function Footer() {
           <div className="col-span-2 md:col-span-1">
             <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-4 text-xs uppercase tracking-widest">{t('footer.downloadTitle')}</h4>
             <div className="flex flex-col space-y-3">
-              {/* Google Play Button */}
               <a href="#" className="flex items-center gap-2.5 bg-zinc-900 dark:bg-zinc-800 border border-zinc-800 dark:border-zinc-700 hover:bg-zinc-950 dark:hover:bg-zinc-700/80 text-white px-4 py-2.5 rounded-lg transition-colors w-full sm:max-w-[170px]">
                 <IconBrandGooglePlay className="h-6 w-6 text-primary" />
                 <div className="text-left leading-none">
@@ -246,7 +306,6 @@ function Footer() {
                   <span className="text-xs font-semibold block mt-0.5">Google Play</span>
                 </div>
               </a>
-              {/* App Store Button */}
               <a href="#" className="flex items-center gap-2.5 bg-zinc-900 dark:bg-zinc-800 border border-zinc-800 dark:border-zinc-700 hover:bg-zinc-950 dark:hover:bg-zinc-700/80 text-white px-4 py-2.5 rounded-lg transition-colors w-full sm:max-w-[170px]">
                 <IconBrandApple className="h-6 w-6 text-white" />
                 <div className="text-left leading-none">
@@ -276,21 +335,36 @@ function Footer() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-background font-sans text-foreground">
-        <Navbar />
-        <main className="flex-1 pt-16">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/workers" element={<WorkersList />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<WorkerProfile />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col bg-background font-sans text-foreground">
+          <Navbar />
+          <main className="flex-1 pt-16">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/workers" element={<WorkersList />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/register" element={<Register />} />
+
+              {/* Worker profile — public when ?id= is provided, protected for own profile */}
+              <Route path="/profile" element={
+                <RequireAuth>
+                  <WorkerProfile />
+                </RequireAuth>
+              } />
+
+              {/* Admin only */}
+              <Route path="/admin" element={
+                <RequireAdmin>
+                  <AdminDashboard />
+                </RequireAdmin>
+              } />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </AuthProvider>
     </Router>
   );
 }

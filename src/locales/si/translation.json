@@ -5,6 +5,8 @@
     "login": "පුරනය වන්න",
     "register": "ලියාපදිංචි වන්න",
     "dashboard": "පාලක පුවරුව",
+    "myProfile": "මගේ පැතිකඩ",
+    "signOut": "ඉවත් වන්න",
     "needService": "සේවා ලබාගැනීමට",
     "provideService": "සේවා සැපයීමට"
   },
@@ -128,6 +130,21 @@
     "forgotPasswordDesc": "Forgot Password Desc",
     "sending": "Sending",
     "sendResetLink": "Send Reset Link",
-    "backToLogin": "Back To Login"
+    "backToLogin": "Back To Login",
+    "confirmPassword": "මුරපදය තහවුරු කරන්න",
+    "validation": {
+      "firstNameRequired": "පළමු නම අවශ්‍යයි.",
+      "lastNameRequired": "වාසගම අවශ්‍යයි.",
+      "emailRequired": "විද්‍යුත් තැපෑල අවශ්‍යයි.",
+      "emailInvalid": "වලංගු විද්‍යුත් තැපෑල් ලිපිනයක් ඇතුළත් කරන්න.",
+      "emailOrPhoneRequired": "කරුණාකර අවම වශයෙන් විද්‍යුත් තැපෑලක් හෝ දුරකථන අංකයක් ලබා දෙන්න.",
+      "emailOrPhoneFieldRequired": "විද්‍යුත් තැපෑල හෝ දුරකථන අංකය අවශ්‍යයි.",
+      "phoneRequired": "සේවකයින්ට දුරකථන අංකය අවශ්‍යයි.",
+      "phoneInvalid": "වලංගු දුරකථන අංකයක් ඇතුළත් කරන්න.",
+      "passwordRequired": "මුරපදය අවශ්‍යයි.",
+      "passwordMin": "මුරපදය අවම වශයෙන් අක්ෂර 6ක් විය යුතුය.",
+      "confirmPasswordRequired": "කරුණාකර ඔබගේ මුරපදය තහවුරු කරන්න.",
+      "passwordsMustMatch": "මුරපද ගැලපෙන්නේ නැත."
+    }
   }
 }

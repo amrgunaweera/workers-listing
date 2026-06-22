@@ -4,7 +4,7 @@ import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { IconStarFilled, IconMapPin } from '@tabler/icons-react';
+import { IconMapPin } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 
 export default function WorkerCard({ worker }) {
@@ -31,15 +31,21 @@ export default function WorkerCard({ worker }) {
                 </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded-md text-sm font-medium">
-              <IconStarFilled className="h-4 w-4" />
-              <span>{worker.rating}</span>
-            </div>
           </div>
           
           <div className="mt-4 flex items-center gap-2 text-muted-foreground text-sm">
             <IconMapPin className="h-4 w-4 shrink-0" />
-            <span className="truncate">{worker.location}</span>
+            <span className="truncate">
+              {Array.isArray(worker.locations) && worker.locations.length > 0 ? (
+                worker.locations.map((loc, idx) => (
+                  <span key={idx}>
+                    {loc.town}{idx < worker.locations.length - 1 ? ', ' : ''}
+                  </span>
+                ))
+              ) : (
+                worker.location
+              )}
+            </span>
           </div>
 
           <p className="mt-3 text-sm text-muted-foreground line-clamp-2">

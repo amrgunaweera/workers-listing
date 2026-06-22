@@ -1,4 +1,7 @@
 import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -10,25 +13,42 @@ import { IconBriefcase } from '@tabler/icons-react';
 import { auth } from '../lib/firebase';
 import { sendPasswordResetEmail } from 'firebase/auth';
 
+const buildSchema = (t) =>
+  z.object({
+    email: z
+      .string()
+      .min(1, t('auth.validation.emailRequired'))
+      .email(t('auth.validation.emailInvalid')),
+  });
+
 export default function ForgotPassword() {
   const { t } = useTranslation();
-  const [email, setEmail] = React.useState('');
-  const [error, setError] = React.useState('');
+  const [serverError, setServerError] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(buildSchema(t)),
+    defaultValues: {
+      email: '',
+    },
+  });
+
+  const onSubmit = async (data) => {
+    setServerError('');
     setMessage('');
     setLoading(true);
-    
+
     try {
-      await sendPasswordResetEmail(auth, email.trim());
+      await sendPasswordResetEmail(auth, data.email.trim());
       setMessage(t('auth.resetEmailSent'));
     } catch (err) {
       console.error(err);
-      setError(t('auth.resetError'));
+      setServerError(t('auth.resetError'));
     } finally {
       setLoading(false);
     }
@@ -51,28 +71,37 @@ export default function ForgotPassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && <div className="p-3 mb-4 text-sm text-red-500 bg-red-100/10 border border-red-500/20 rounded-md">{error}</div>}
-          {message && <div className="p-3 mb-4 text-sm text-green-600 bg-green-100/10 border border-green-500/20 rounded-md">{message}</div>}
-          
-          <form onSubmit={handleResetPassword} className="space-y-4">
+          {serverError && (
+            <div className="p-3 mb-4 text-sm text-red-500 bg-red-100/10 border border-red-500/20 rounded-md">
+              {serverError}
+            </div>
+          )}
+          {message && (
+            <div className="p-3 mb-4 text-sm text-green-600 bg-green-100/10 border border-green-500/20 rounded-md">
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="space-y-2">
               <Label htmlFor="email">{t('auth.email')}</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-                placeholder="john.doe@example.com" 
-                required 
-                className="bg-background/50" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="john.doe@example.com"
+                className={`bg-background/50 ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                {...register('email')}
               />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+              )}
             </div>
-            
+
             <Button className="w-full mt-4" type="submit" disabled={loading}>
               {loading ? t('auth.sending') : t('auth.sendResetLink')}
             </Button>
           </form>
-          
+
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <Link to="/login" className="font-medium text-primary hover:underline">
               {t('auth.backToLogin')}

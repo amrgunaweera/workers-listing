@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   IconSearch,
   IconHammer,
@@ -93,7 +93,9 @@ const categoryIcons = {
 export default function Home() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showPendingBanner, setShowPendingBanner] = useState(searchParams.get('registered') === 'pending');
 
   const sortedCategories = useMemo(() => {
     return [...categories].sort((a, b) => t(`categories.${a}`).localeCompare(t(`categories.${b}`)));
@@ -143,6 +145,20 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Pending registration banner */}
+      {showPendingBanner && (
+        <div className="w-full bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-sm text-amber-700 dark:text-amber-400">
+            <span className="text-lg">⏳</span>
+            <span>
+              <strong>Your account is under review.</strong> An admin will activate your profile shortly. You'll appear in search results once approved.
+            </span>
+          </div>
+          <button onClick={() => setShowPendingBanner(false)} className="text-amber-600 dark:text-amber-400 hover:text-amber-800 shrink-0 cursor-pointer">
+            ✕
+          </button>
+        </div>
+      )}
       {/* Hero Section */}
       <section className="relative pt-16 pb-12 lg:pt-20 lg:pb-20 overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/10">
         {/* Decorative gradient orbs */}

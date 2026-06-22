@@ -85,10 +85,13 @@ export default function WorkersList() {
   // Use static districts from Sri Lanka locations, and include any dynamic ones just in case
   const districts = useMemo(() => {
     const dynamicDistricts = workers.map(w => {
+      if (Array.isArray(w.locations) && w.locations.length > 0) {
+        return w.locations.map(l => l.district);
+      }
       if (!w.location || w.location === 'Not specified') return null;
       const parts = w.location.split(',').map(s => s.trim());
       return parts.length > 1 ? parts[1] : parts[0];
-    }).filter(Boolean);
+    }).flat().filter(Boolean);
     
     const combined = Array.from(new Set([...allDistricts, ...dynamicDistricts])).sort();
     return ['all', ...combined];
@@ -99,6 +102,11 @@ export default function WorkersList() {
     const staticTowns = selectedDistrict !== 'all' ? (sriLankaLocations[selectedDistrict] || []) : [];
     
     const dynamicTowns = workers.map(w => {
+      if (Array.isArray(w.locations) && w.locations.length > 0) {
+        return w.locations
+          .filter(l => selectedDistrict === 'all' || l.district === selectedDistrict)
+          .map(l => l.town);
+      }
       if (!w.location || w.location === 'Not specified') return null;
       const parts = w.location.split(',').map(s => s.trim());
       const workerDistrict = parts.length > 1 ? parts[1] : parts[0];
@@ -108,30 +116,54 @@ export default function WorkersList() {
         return null;
       }
       return workerTown;
-    }).filter(Boolean);
+    }).flat().filter(Boolean);
     
     const combinedTowns = Array.from(new Set([...staticTowns, ...dynamicTowns])).sort();
     return ['all', ...combinedTowns];
   }, [workers, selectedDistrict]);
 
   const filteredWorkers = workers.filter(worker => {
+    // Only show active/approved workers publicly
+    if (!worker.available || worker.status === 'pending') return false;
+
     const query = searchQuery.toLowerCase().trim();
-    const matchesSearch = !query || 
-                          String(worker.name || '').toLowerCase().includes(query) || 
-                          String(worker.location || '').toLowerCase().includes(query) ||
+
+    // Support both single category (legacy) and categories array (new)
+    const workerCats = Array.isArray(worker.categories) && worker.categories.length > 0
+      ? worker.categories
+      : [worker.category || ''];
+    const catText = workerCats.join(' ').toLowerCase();
+
+    const locTextMatch = Array.isArray(worker.locations) && worker.locations.length > 0
+      ? worker.locations.some(l => l.district.toLowerCase().includes(query) || l.town.toLowerCase().includes(query))
+      : String(worker.location || '').toLowerCase().includes(query);
+
+    const matchesSearch = !query ||
+                          String(worker.name || '').toLowerCase().includes(query) ||
+                          locTextMatch ||
                           String(worker.bio || '').toLowerCase().includes(query) ||
-                          String(worker.category || '').toLowerCase().includes(query);
-    
-    const matchesCategory = selectedCategory === 'all' || normalizeCategory(worker.category) === selectedCategory;
-    
+                          catText.includes(query);
+
+    const matchesCategory = selectedCategory === 'all' ||
+      workerCats.some(c => normalizeCategory(c) === selectedCategory);
+
     let matchesDistrict = true;
     let matchesTown = true;
-    
-    if (worker.location && worker.location !== 'Not specified') {
+
+    if (Array.isArray(worker.locations) && worker.locations.length > 0) {
+      if (selectedDistrict !== 'all' && selectedTown !== 'all') {
+        matchesDistrict = worker.locations.some(l => l.district === selectedDistrict && l.town === selectedTown);
+        matchesTown = matchesDistrict;
+      } else if (selectedDistrict !== 'all') {
+        matchesDistrict = worker.locations.some(l => l.district === selectedDistrict);
+      } else if (selectedTown !== 'all') {
+        matchesTown = worker.locations.some(l => l.town === selectedTown);
+      }
+    } else if (worker.location && worker.location !== 'Not specified') {
       const parts = worker.location.split(',').map(s => s.trim());
       const workerTown = parts[0];
       const workerDistrict = parts.length > 1 ? parts[1] : parts[0];
-      
+
       if (selectedDistrict !== 'all') {
         matchesDistrict = workerDistrict === selectedDistrict;
       }
@@ -159,7 +191,7 @@ export default function WorkersList() {
           {/* Sidebar Filters */}
           <div className="w-full lg:w-60 shrink-0 space-y-6">
             <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-border/20">
-              <h3 className="text-xs font-semibold mb-3 text-muted-foreground/70 uppercase tracking-wider">{t('filters.title') || 'Filters'}</h3>
+              <h3 className="text-xs font-semibold mb-3 text-muted-foreground/70 uppercase tracking-wider">{t('filters.title', 'Filters')}</h3>
               
               {/* Search Form */}
               <form onSubmit={handleSearch} className="mb-4 relative">
@@ -178,18 +210,18 @@ export default function WorkersList() {
               {/* District Filter */}
               <div className="mb-3">
                 <label className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider block mb-1">
-                  {t('worker.district') || 'District'}
+                  {t('worker.district', 'District')}
                 </label>
                 <Select value={selectedDistrict} onValueChange={handleDistrictChange}>
                   <SelectTrigger className="w-full h-8 text-xs bg-background/50 border-border/60 text-foreground justify-between">
                     <span data-slot="select-value" className="flex flex-1 text-left">
-                      {selectedDistrict === 'all' ? t('categories.all') || 'All' : selectedDistrict}
+                      {selectedDistrict === 'all' ? t('categories.all', 'All') : selectedDistrict}
                     </span>
                   </SelectTrigger>
                   <SelectContent className="bg-popover text-popover-foreground">
                     {districts.map(d => (
                       <SelectItem key={d} value={d} className="text-xs">
-                        {d === 'all' ? t('categories.all') || 'All' : d}
+                        {d === 'all' ? t('categories.all', 'All') : d}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -199,18 +231,18 @@ export default function WorkersList() {
               {/* Town Filter */}
               <div className="mb-4">
                 <label className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider block mb-1">
-                  {t('worker.town') || 'Town'}
+                  {t('worker.town', 'Town')}
                 </label>
                 <Select value={selectedTown} onValueChange={handleTownChange} disabled={selectedDistrict === 'all'}>
                   <SelectTrigger className="w-full h-8 text-xs bg-background/50 border-border/60 text-foreground justify-between disabled:opacity-50">
                     <span data-slot="select-value" className="flex flex-1 text-left">
-                      {selectedTown === 'all' ? t('categories.all') || 'All' : selectedTown}
+                      {selectedTown === 'all' ? t('categories.all', 'All') : selectedTown}
                     </span>
                   </SelectTrigger>
                   <SelectContent className="bg-popover text-popover-foreground">
                     {towns.map(tw => (
                       <SelectItem key={tw} value={tw} className="text-xs">
-                        {tw === 'all' ? t('categories.all') || 'All' : tw}
+                        {tw === 'all' ? t('categories.all', 'All') : tw}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -219,7 +251,7 @@ export default function WorkersList() {
 
               {/* Categories */}
               <div>
-                <h4 className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">{t('categories.browse') || 'Categories'}</h4>
+                <h4 className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">{t('categories.browse', 'Categories')}</h4>
                 <div className="space-y-1 flex flex-col max-h-[350px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
                   {sortedCategories.map(cat => (
                     <Button
@@ -240,7 +272,7 @@ export default function WorkersList() {
           <div className="flex-1">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground">
-                {t('workersList.resultsTitle') || 'Search Results'}
+                {t('workersList.resultsTitle', 'Search Results')}
               </h2>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1">
                 <p className="text-muted-foreground text-sm">
@@ -343,7 +375,7 @@ export default function WorkersList() {
           <div className="w-full lg:w-60 shrink-0">
             <div className="p-3 rounded-xl bg-card border border-border/30 text-center">
               <span className="text-[9px] font-semibold text-muted-foreground/40 uppercase tracking-widest block mb-2 select-none">
-                {t('advertisement') || 'Advertisement'}
+                {t('advertisement', 'Advertisement')}
               </span>
               {/* Google Ads Placeholder container - non-prominent styling */}
               <div className="relative flex flex-col items-center justify-center h-[200px] w-full rounded-lg bg-muted/5 border border-dashed border-border/30 overflow-hidden">

@@ -5,6 +5,8 @@
     "login": "உள்நுழைக",
     "register": "பதிவு செய்க",
     "dashboard": "கட்டுப்பாட்டு அறை",
+    "myProfile": "என் சுயவிவரம்",
+    "signOut": "வெளியேறு",
     "needService": "சேவை பெற",
     "provideService": "சேவை வழங்க"
   },
@@ -128,6 +130,21 @@
     "forgotPasswordDesc": "Forgot Password Desc",
     "sending": "Sending",
     "sendResetLink": "Send Reset Link",
-    "backToLogin": "Back To Login"
+    "backToLogin": "Back To Login",
+    "confirmPassword": "கடவுச்சோலை உறுதிப்படுத்துக",
+    "validation": {
+      "firstNameRequired": "முதல் பெயர் தேவையானது.",
+      "lastNameRequired": "குடும்பப் பெயர் தேவையானது.",
+      "emailRequired": "மின்னஞ்சல் தேவையானது.",
+      "emailInvalid": "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
+      "emailOrPhoneRequired": "தயவுசெய்து குறைந்தது மின்னஞ்சல் அல்லது தொலைபேசி எண் கொடுக்கவும்.",
+      "emailOrPhoneFieldRequired": "மின்னஞ்சல் அல்லது தொலைபேசி எண் தேவையானது.",
+      "phoneRequired": "பணியாளர்களுக்கு தொலைபேசி எண் தேவையானது.",
+      "phoneInvalid": "சரியான தொலைபேசி எண்ணை உள்ளிடவும்.",
+      "passwordRequired": "கடவுச்சோல் தேவையானது.",
+      "passwordMin": "கடவுச்சோல் குறைந்தது 6 எழுத்துக்களாக இருக்க வேண்டும்.",
+      "confirmPasswordRequired": "தயவுசெய்து உங்கள் கடவுச்சோலை உறுதிப்படுத்தவும்.",
+      "passwordsMustMatch": "கடவுச்சோல்கள் பொருந்த வேண்டும்."
+    }
   }
 }
