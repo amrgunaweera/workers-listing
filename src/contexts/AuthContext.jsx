@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -11,22 +9,38 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      if (user) {
-        try {
-          const snap = await getDoc(doc(db, 'users', user.uid));
-          setUserRole(snap.exists() ? snap.data().role : 'user');
-        } catch {
-          setUserRole('user');
-        }
-      } else {
-        setUserRole(null);
-      }
-      setAuthLoading(false);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleUserChange(session?.user ?? null);
     });
-    return () => unsub();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleUserChange(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const handleUserChange = async (user) => {
+    setCurrentUser(user);
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        setUserRole(!error && data ? data.role : 'user');
+      } catch {
+        setUserRole('user');
+      }
+    } else {
+      setUserRole(null);
+    }
+    setAuthLoading(false);
+  };
 
   return (
     <AuthContext.Provider value={{ currentUser, userRole, authLoading }}>

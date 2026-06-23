@@ -10,8 +10,7 @@ import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { categories, normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import { useSearchParams, Link } from 'react-router-dom';
 import { IconMapPin, IconPhone, IconEdit, IconCheck, IconX, IconUser, IconMail, IconArrowLeft, IconShieldCheck, IconAlertTriangle, IconClock, IconPlus, IconTrash, IconCalendar, IconStar } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -324,15 +323,15 @@ export default function WorkerProfile() {
 
         if (userRole === 'worker' || id) {
           // Try fetching worker document
-          const workerSnap = await getDoc(doc(db, 'workers', profileId));
-          if (workerSnap.exists()) {
-            setWorker({ id: workerSnap.id, ...workerSnap.data() });
+          const { data: workerData, error: workerError } = await supabase.from('workers').select('*').eq('id', profileId).single();
+          if (workerData) {
+            setWorker(workerData);
             
             // Also fetch the user document to get the email and other user-level fields
             try {
-              const userSnap = await getDoc(doc(db, 'users', profileId));
-              if (userSnap.exists()) {
-                setUserDoc({ id: userSnap.id, ...userSnap.data() });
+              const { data: userData } = await supabase.from('users').select('*').eq('id', profileId).single();
+              if (userData) {
+                setUserDoc(userData);
               }
             } catch (err) {
               console.error('Error fetching user doc for worker:', err);
@@ -344,9 +343,9 @@ export default function WorkerProfile() {
         }
 
         // Fall back to users document for non-worker users
-        const userSnap = await getDoc(doc(db, 'users', profileId));
-        if (userSnap.exists()) {
-          setUserDoc({ id: userSnap.id, ...userSnap.data() });
+        const { data: userData } = await supabase.from('users').select('*').eq('id', profileId).single();
+        if (userData) {
+          setUserDoc(userData);
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -372,9 +371,9 @@ export default function WorkerProfile() {
       locations: data.locations || [],
     }, (k, v) => v === undefined ? null : v));
     try {
-      await updateDoc(doc(db, 'workers', profileId), {
+      await supabase.from('workers').update({
         pendingUpdate: updatePayload
-      });
+      }).eq('id', profileId);
       setWorker(prev => ({ ...prev, pendingUpdate: updatePayload }));
       setIsEditing(false);
       setSuccessMsg('Your profile updates have been submitted for admin approval.');

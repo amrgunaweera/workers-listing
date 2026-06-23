@@ -6,11 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import {
-  collection, getDocs, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, deleteField
-} from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
+import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { categories, normalizeCategory } from '../lib/categories';
 import {
@@ -501,15 +497,21 @@ export default function AdminDashboard() {
   const showToast = (msg) => { setToastMsg(msg); setTimeout(() => setToastMsg(''), 3000); };
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, user => setCurrentUser(user));
-    return () => unsub();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ?? null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchWorkers = async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, 'workers'));
-      setWorkers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const { data, error } = await supabase.from('workers').select('*');
+      if (error) throw error;
+      setWorkers(data || []);
     } catch (err) {
       console.error('Error fetching workers:', err);
     } finally {
@@ -519,32 +521,39 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchWorkers(); }, []);
 
-  const handleLogout = async () => { await signOut(auth); navigate('/login'); };
+  const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login'); };
 
   const handleSaveWorker = async (formData) => {
     if (editingWorker) {
-      await updateDoc(doc(db, 'workers', editingWorker.id), formData);
-      setWorkers(ws => ws.map(w => w.id === editingWorker.id ? { ...w, ...formData } : w));
-      showToast('Worker updated successfully.');
-      setEditingWorker(null);
+      const { error } = await supabase.from('workers').update(formData).eq('id', editingWorker.id);
+      if (!error) {
+        setWorkers(ws => ws.map(w => w.id === editingWorker.id ? { ...w, ...formData } : w));
+        showToast('Worker updated successfully.');
+        setEditingWorker(null);
+      }
     } else {
-      const ref = await addDoc(collection(db, 'workers'), { ...formData, createdAt: serverTimestamp(), status: 'approved' });
-      setWorkers(ws => [...ws, { id: ref.id, ...formData, status: 'approved' }]);
-      showToast('Worker added successfully.');
-      setShowAddModal(false);
+      const newWorkerData = { ...formData, status: 'approved' };
+      const { data, error } = await supabase.from('workers').insert([newWorkerData]).select().single();
+      if (!error && data) {
+        setWorkers(ws => [...ws, data]);
+        showToast('Worker added successfully.');
+        setShowAddModal(false);
+      } else {
+        console.error(error);
+      }
     }
   };
 
   const handleApprove = async (worker) => {
     const update = { available: true, status: 'approved' };
-    await updateDoc(doc(db, 'workers', worker.id), update);
+    await supabase.from('workers').update(update).eq('id', worker.id);
     setWorkers(ws => ws.map(w => w.id === worker.id ? { ...w, ...update } : w));
     showToast(`${worker.name} has been approved and is now active.`);
   };
 
   const handleReject = async (id) => {
     const update = { available: false, status: 'rejected' };
-    await updateDoc(doc(db, 'workers', id), update);
+    await supabase.from('workers').update(update).eq('id', id);
     setWorkers(ws => ws.map(w => w.id === id ? { ...w, ...update } : w));
     showToast('Worker rejected.');
   };
@@ -552,16 +561,16 @@ export default function AdminDashboard() {
   const handleApproveUpdate = async (worker) => {
     const update = {
       ...worker.pendingUpdate,
-      pendingUpdate: deleteField()
+      pendingUpdate: null
     };
-    await updateDoc(doc(db, 'workers', worker.id), update);
+    await supabase.from('workers').update(update).eq('id', worker.id);
     setWorkers(ws => ws.map(w => w.id === worker.id ? { ...w, ...worker.pendingUpdate, pendingUpdate: null } : w));
     showToast(`${worker.name}'s profile updates have been approved.`);
     setReviewingUpdateWorker(null);
   };
 
   const handleRejectUpdate = async (id) => {
-    await updateDoc(doc(db, 'workers', id), { pendingUpdate: deleteField() });
+    await supabase.from('workers').update({ pendingUpdate: null }).eq('id', id);
     setWorkers(ws => ws.map(w => w.id === id ? { ...w, pendingUpdate: null } : w));
     showToast('Profile updates rejected.');
     setReviewingUpdateWorker(null);
@@ -569,7 +578,7 @@ export default function AdminDashboard() {
 
   const handleDeleteWorker = async () => {
     if (!deletingId) return;
-    await deleteDoc(doc(db, 'workers', deletingId));
+    await supabase.from('workers').delete().eq('id', deletingId);
     setWorkers(ws => ws.filter(w => w.id !== deletingId));
     showToast('Worker deleted.');
     setDeletingId(null);
@@ -578,7 +587,7 @@ export default function AdminDashboard() {
   const handleToggleAvailability = async (worker) => {
     const updated = !worker.available;
     const statusUpdate = updated ? 'approved' : 'inactive';
-    await updateDoc(doc(db, 'workers', worker.id), { available: updated, status: statusUpdate });
+    await supabase.from('workers').update({ available: updated, status: statusUpdate }).eq('id', worker.id);
     setWorkers(ws => ws.map(w => w.id === worker.id ? { ...w, available: updated, status: statusUpdate } : w));
     showToast(`Worker marked as ${updated ? 'Active' : 'Inactive'}.`);
   };

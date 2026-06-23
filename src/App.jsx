@@ -22,8 +22,7 @@ import WorkerProfile from './pages/WorkerProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import WorkersList from './pages/WorkersList';
 import ForgotPassword from './pages/ForgotPassword';
-import { auth } from './lib/firebase';
-import { signOut } from 'firebase/auth';
+import { supabase } from './lib/supabase';
 
 import { Button } from './components/ui/button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -36,7 +35,7 @@ function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     setIsOpen(false);
     navigate('/login');
   };

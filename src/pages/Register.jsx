@@ -10,9 +10,7 @@ import { IconBriefcase, IconEye, IconEyeOff } from '@tabler/icons-react';
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { auth, db } from '../lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 function buildSchema(role, t) {
@@ -92,19 +90,28 @@ export default function Register() {
     try {
       const registerEmail =
         data.email?.trim() || `worker-${data.phone.trim()}@bestservicelk.com`;
-      const userCredential = await createUserWithEmailAndPassword(auth, registerEmail, data.password);
-      const user = userCredential.user;
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: registerEmail,
+        password: data.password,
+      });
 
-      await setDoc(doc(db, 'users', user.uid), {
+      if (authError) throw authError;
+
+      const user = authData.user;
+
+      if (!user) throw new Error("No user returned from signUp");
+
+      await supabase.from('users').insert([{
+        id: user.id,
         email: user.email,
         phone: data.phone?.trim() || null,
         role: role,
         createdAt: new Date().toISOString(),
-      });
+      }]);
 
       if (role === 'worker') {
-        await setDoc(doc(db, 'workers', user.uid), {
-          id: user.uid,
+        await supabase.from('workers').insert([{
+          id: user.id,
           name: `${data.firstName} ${data.lastName}`.trim(),
           categories: [],
           category: 'repairs-others',
@@ -116,9 +123,9 @@ export default function Register() {
           phone: data.phone?.trim(),
           available: false,
           status: 'pending',
-          userId: user.uid,
+          userId: user.id,
           createdAt: new Date().toISOString(),
-        });
+        }]);
       }
 
       navigate(role === 'worker' ? '/?registered=pending' : '/');

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import WorkerListItem from '../components/WorkerListItem';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
@@ -41,12 +40,9 @@ export default function WorkersList() {
     const fetchWorkers = async () => {
       try {
         setLoading(true);
-        const querySnapshot = await getDocs(collection(db, 'workers'));
-        const workersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setWorkers(workersData);
+        const { data, error } = await supabase.from('workers').select('*');
+        if (error) throw error;
+        setWorkers(data || []);
       } catch (error) {
         console.error("Error fetching workers:", error);
       } finally {

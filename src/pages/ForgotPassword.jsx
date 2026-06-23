@@ -10,8 +10,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconBriefcase } from '@tabler/icons-react';
 
-import { auth } from '../lib/firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { supabase } from '../lib/supabase';
 
 const buildSchema = (t) =>
   z.object({
@@ -44,7 +43,8 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await sendPasswordResetEmail(auth, data.email.trim());
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email.trim(), { redirectTo: window.location.origin + '/reset-password' });
+      if (error) throw error;
       setMessage(t('auth.resetEmailSent'));
     } catch (err) {
       console.error(err);

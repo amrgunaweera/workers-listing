@@ -10,9 +10,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconBriefcase, IconEye, IconEyeOff } from '@tabler/icons-react';
 
-import { auth, db } from '../lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -63,13 +61,21 @@ export default function Login() {
       if (/^\+?[0-9]+$/.test(loginEmail)) {
         loginEmail = `worker-${loginEmail}@bestservicelk.com`;
       }
-      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, data.password);
-      const user = userCredential.user;
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: data.password
+      });
+      if (authError) throw authError;
 
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
+      const user = authData.user;
 
-      if (docSnap.exists() && docSnap.data().role === 'admin') {
+      const { data: userDoc, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (userDoc?.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/profile');
