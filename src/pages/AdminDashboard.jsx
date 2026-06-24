@@ -9,9 +9,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { supabase } from '../lib/supabase';
-import { createClient } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { supabase, deleteAvatarFile } from '../lib/supabase';
 import { categories, normalizeCategory } from '../lib/categories';
 import {
   IconTrash, IconEdit, IconCheck, IconX, IconLogout,
@@ -27,63 +25,7 @@ import { Switch } from '../components/ui/switch';
 
 /* ─────────────────── helpers ─────────────────── */
 
-function generateUUID() {
-  if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
-    return window.crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
-function workerCats(worker) {
-  return Array.isArray(worker.categories) && worker.categories.length > 0
-    ? worker.categories
-    : worker.category ? [worker.category] : [];
-}
-
-function StatCard({ icon: Icon, label, value, color }) {
-  return (
-    <Card className="border-border/40 bg-card shadow-sm">
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
-          <p className="text-2xl font-bold text-foreground mt-0.5">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ─────────────────── Worker Form Modal ─────────────────── */
-
-const deleteAvatarFile = async (avatarUrl) => {
-  if (!avatarUrl || !avatarUrl.includes('/avatars/')) return;
-  try {
-    const parts = avatarUrl.split('/avatars/');
-    let filePath = parts[parts.length - 1].split('?')[0]; // Remove query params if any
-    filePath = decodeURIComponent(filePath); // Decode URL-encoded characters
-    if (filePath.startsWith('/')) filePath = filePath.substring(1); // Ensure no leading slash
-    if (filePath) {
-      console.log('Attempting to delete avatar:', filePath);
-      const { data, error } = await supabase.storage.from('avatars').remove([filePath]);
-      if (error) {
-        console.error('Supabase Storage Error:', error.message);
-      } else if (!data || data.length === 0) {
-        console.warn('Supabase Storage Warning: File was not deleted (possibly due to RLS policies or file not found). File:', filePath);
-        alert(`Failed to delete avatar from storage.\n\nFile: ${filePath}\n\nThis is usually caused by missing DELETE permissions in Supabase Storage RLS policies. Please run the SQL command in Supabase to allow DELETE operations on the 'avatars' bucket.`);
-      } else {
-        console.log('Successfully deleted avatar from storage:', filePath);
-      }
-    }
-  } catch (err) {
-    console.error('Failed to parse/delete avatar from storage:', err);
-  }
-};
 
 const workerSchema = z.object({
   firstName: z.string().min(1, 'First name is required.'),

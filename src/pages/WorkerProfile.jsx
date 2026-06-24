@@ -10,7 +10,7 @@ import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { categories, normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { supabase } from '../lib/supabase';
+import { supabase, deleteAvatarFile } from '../lib/supabase';
 import { useSearchParams, Link } from 'react-router-dom';
 import { IconMapPin, IconPhone, IconEdit, IconCheck, IconX, IconUser, IconMail, IconArrowLeft, IconDashboard, IconAlertTriangle, IconClock, IconPlus, IconTrash, IconCalendar, IconStar } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,29 +60,6 @@ const editSchema = z.object({
   ).min(1, 'At least one location is required.'),
 });
 
-const deleteAvatarFile = async (avatarUrl) => {
-  if (!avatarUrl || !avatarUrl.includes('/avatars/')) return;
-  try {
-    const parts = avatarUrl.split('/avatars/');
-    let filePath = parts[parts.length - 1].split('?')[0]; // Remove query params if any
-    filePath = decodeURIComponent(filePath); // Decode URL-encoded characters
-    if (filePath.startsWith('/')) filePath = filePath.substring(1); // Ensure no leading slash
-    if (filePath) {
-      console.log('Attempting to delete avatar:', filePath);
-      const { data, error } = await supabase.storage.from('avatars').remove([filePath]);
-      if (error) {
-        console.error('Supabase Storage Error:', error.message);
-      } else if (!data || data.length === 0) {
-        console.warn('Supabase Storage Warning: File was not deleted (possibly due to RLS policies or file not found). File:', filePath);
-        alert(`Failed to delete avatar from storage.\n\nFile: ${filePath}\n\nThis is usually caused by missing DELETE permissions in Supabase Storage RLS policies. Please run the SQL command in Supabase to allow DELETE operations on the 'avatars' bucket.`);
-      } else {
-        console.log('Successfully deleted avatar from storage:', filePath);
-      }
-    }
-  } catch (err) {
-    console.error('Failed to parse/delete avatar from storage:', err);
-  }
-};
 
 /* ─── Edit form for workers ─── */
 function WorkerEditForm({ worker, onSave, onCancel }) {
