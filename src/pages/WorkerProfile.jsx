@@ -12,10 +12,13 @@ import { categories, normalizeCategory } from '../lib/categories';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { supabase } from '../lib/supabase';
 import { useSearchParams, Link } from 'react-router-dom';
-import { IconMapPin, IconPhone, IconEdit, IconCheck, IconX, IconUser, IconMail, IconArrowLeft, IconShieldCheck, IconAlertTriangle, IconClock, IconPlus, IconTrash, IconCalendar, IconStar } from '@tabler/icons-react';
+import { IconMapPin, IconPhone, IconEdit, IconCheck, IconX, IconUser, IconMail, IconArrowLeft, IconDashboard, IconAlertTriangle, IconClock, IconPlus, IconTrash, IconCalendar, IconStar } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { sriLankaLocations, allDistricts } from '../lib/locations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import SearchableSelect from '../components/SearchableSelect';
+import SearchableMultiSelect from '../components/SearchableMultiSelect';
+import ImageCropper from '../components/ImageCropper';
 
 /* ─────────────────── Helpers ─────────────────── */
 const getFormattedJoinedDate = (dateVal) => {
@@ -37,37 +40,11 @@ const getFormattedJoinedDate = (dateVal) => {
   return null;
 };
 
-/* ─────────────────── Multi-Category Picker ─────────────────── */
-function CategoryPicker({ selected, onChange }) {
-  const toggle = (cat) => {
-    if (selected.includes(cat)) {
-      onChange(selected.filter(c => c !== cat));
-    } else {
-      onChange([...selected, cat]);
-    }
-  };
-  return (
-    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20">
-      {categories.map(cat => (
-        <button
-          key={cat}
-          type="button"
-          onClick={() => toggle(cat)}
-          className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer ${selected.includes(cat)
-            ? 'bg-primary text-primary-foreground border-primary'
-            : 'bg-muted/40 text-muted-foreground border-border/60 hover:border-primary/40 hover:text-foreground'
-            }`}
-        >
-          {cat}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 /* ─── Zod schema for worker profile edit ─── */
 const editSchema = z.object({
-  name: z.string().min(1, 'Name is required.'),
+  firstName: z.string().min(1, 'First Name is required.'),
+  lastName: z.string().min(1, 'Last Name is required.'),
+  email: z.string().email('Please enter a valid email.').or(z.literal('')).optional(),
   avatar: z.string().url('Must be a valid URL.').or(z.literal('')).optional(),
   categories: z.array(z.string()).min(1, 'Select at least one category.'),
   bio: z.string().max(500, 'Bio must be under 500 characters.').optional(),
@@ -83,10 +60,36 @@ const editSchema = z.object({
   ).min(1, 'At least one location is required.'),
 });
 
+const deleteAvatarFile = async (avatarUrl) => {
+  if (!avatarUrl || !avatarUrl.includes('/avatars/')) return;
+  try {
+    const parts = avatarUrl.split('/avatars/');
+    let filePath = parts[parts.length - 1].split('?')[0]; // Remove query params if any
+    filePath = decodeURIComponent(filePath); // Decode URL-encoded characters
+    if (filePath.startsWith('/')) filePath = filePath.substring(1); // Ensure no leading slash
+    if (filePath) {
+      console.log('Attempting to delete avatar:', filePath);
+      const { data, error } = await supabase.storage.from('avatars').remove([filePath]);
+      if (error) {
+        console.error('Supabase Storage Error:', error.message);
+      } else if (!data || data.length === 0) {
+        console.warn('Supabase Storage Warning: File was not deleted (possibly due to RLS policies or file not found). File:', filePath);
+        alert(`Failed to delete avatar from storage.\n\nFile: ${filePath}\n\nThis is usually caused by missing DELETE permissions in Supabase Storage RLS policies. Please run the SQL command in Supabase to allow DELETE operations on the 'avatars' bucket.`);
+      } else {
+        console.log('Successfully deleted avatar from storage:', filePath);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to parse/delete avatar from storage:', err);
+  }
+};
+
 /* ─── Edit form for workers ─── */
 function WorkerEditForm({ worker, onSave, onCancel }) {
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [uploadedAvatars, setUploadedAvatars] = useState([]);
 
   let initialLocations = [{ district: '', town: '' }];
   if (Array.isArray(worker.locations) && worker.locations.length > 0) {
@@ -107,7 +110,9 @@ function WorkerEditForm({ worker, onSave, onCancel }) {
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
-      name: worker.name || '',
+      firstName: worker.name ? worker.name.split(' ')[0] : '',
+      lastName: worker.name ? worker.name.split(' ').slice(1).join(' ') : '',
+      email: worker.email || '',
       avatar: worker.avatar || '',
       categories: Array.isArray(worker.categories) && worker.categories.length > 0 ? worker.categories : (worker.category ? [worker.category] : []),
       bio: worker.bio || '',
@@ -121,11 +126,34 @@ function WorkerEditForm({ worker, onSave, onCancel }) {
     name: 'locations',
   });
 
+  const handleCancel = async () => {
+    // Delete any avatars uploaded during this edit session
+    for (const url of uploadedAvatars) {
+      if (url !== worker.avatar) {
+        await deleteAvatarFile(url);
+      }
+    }
+    onCancel();
+  };
+
   const onSubmit = async (data) => {
     setSaving(true);
     setServerError('');
     try {
-      await onSave(data);
+      // Delete any intermediate avatars uploaded during this session that are not the final selected one
+      const finalAvatar = data.avatar;
+      for (const url of uploadedAvatars) {
+        if (url !== finalAvatar && url !== worker.avatar) {
+          await deleteAvatarFile(url);
+        }
+      }
+
+      const payload = { ...data };
+      payload.name = `${payload.firstName.trim()} ${(payload.lastName || '').trim()}`.trim();
+      delete payload.firstName;
+      delete payload.lastName;
+
+      await onSave(payload);
     } catch (err) {
       console.error("Save profile form error:", err);
       setServerError('Failed to save changes. ' + (err.message || 'Please try again.'));
@@ -146,21 +174,74 @@ function WorkerEditForm({ worker, onSave, onCancel }) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="ep-name">Full Name</Label>
-        <Input
-          id="ep-name"
-          placeholder="e.g. Kamal Perera"
-          className={`bg-background/50 ${errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-          {...register('name')}
+        <Label>Profile Picture</Label>
+        <ImageCropper 
+          currentAvatar={watch('avatar')}
+          onCropDone={(url) => {
+            setValue('avatar', url, { shouldValidate: true });
+            setUploadedAvatars(prev => [...prev, url]);
+          }}
         />
-        {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+        {/* Keep hidden input for zod validation */}
+        <input type="hidden" {...register('avatar')} />
+        {errors.avatar && <p className="text-xs text-red-500">{errors.avatar.message}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="ep-firstname">First Name</Label>
+          <Input
+            id="ep-firstname"
+            placeholder="e.g. Kamal"
+            className={`bg-background/50 ${errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+            {...register('firstName')}
+          />
+          {errors.firstName && <p className="text-xs text-red-500">{errors.firstName.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ep-lastname">Last Name *</Label>
+          <Input
+            id="ep-lastname"
+            placeholder="e.g. Perera"
+            className={`bg-background/50 ${errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+            {...register('lastName')}
+          />
+          {errors.lastName && <p className="text-xs text-red-500">{errors.lastName.message}</p>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="ep-phone">Phone *</Label>
+          <Input
+            id="ep-phone"
+            placeholder="07X XXXXXXX"
+            className={`bg-background/50 ${errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+            {...register('phone')}
+          />
+          {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ep-email">Email (Optional)</Label>
+          <Input
+            id="ep-email"
+            type="email"
+            placeholder="e.g. kamal@example.com"
+            className={`bg-background/50 ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+            {...register('email')}
+          />
+          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+        </div>
       </div>
 
       <div className="space-y-2">
-        <Label>Categories <span className="text-muted-foreground font-normal text-xs">(select all that apply)</span></Label>
-        <CategoryPicker 
+        <Label>Categories *</Label>
+        <SearchableMultiSelect 
+          options={categories}
           selected={watch('categories')} 
           onChange={(v) => setValue('categories', v, { shouldValidate: true })} 
+          placeholder="Search and select categories..."
+          renderOption={(opt) => t(`categories.${normalizeCategory(opt)}`, opt)}
         />
         {errors.categories && <p className="text-xs text-red-500">{errors.categories.message}</p>}
       </div>
@@ -177,30 +258,7 @@ function WorkerEditForm({ worker, onSave, onCancel }) {
         {errors.bio && <p className="text-xs text-red-500">{errors.bio.message}</p>}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="ep-phone">Phone Number</Label>
-          <Input
-            id="ep-phone"
-            type="tel"
-            placeholder="0712345678"
-            className={`bg-background/50 ${errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-            {...register('phone')}
-          />
-          {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="ep-avatar">Avatar URL</Label>
-          <Input
-            id="ep-avatar"
-            placeholder="https://..."
-            className={`bg-background/50 ${errors.avatar ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-            {...register('avatar')}
-          />
-          {errors.avatar && <p className="text-xs text-red-500">{errors.avatar.message}</p>}
-        </div>
-      </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -226,42 +284,30 @@ function WorkerEditForm({ worker, onSave, onCancel }) {
           return (
             <div key={field.id} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-start bg-muted/20 p-3 rounded-lg border border-border/50">
               <div className="space-y-1.5">
-                <Select
+                <SearchableSelect
+                  options={allDistricts}
                   value={watch(`locations.${index}.district`)}
-                  onValueChange={(val) => {
+                  onChange={(val) => {
                     setValue(`locations.${index}.district`, val, { shouldValidate: true });
                     setValue(`locations.${index}.town`, '', { shouldValidate: true });
                   }}
-                >
-                  <SelectTrigger className={`w-full bg-background/50 ${errors.locations?.[index]?.district ? 'border-red-500' : ''}`}>
-                    <SelectValue placeholder="Select District" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover max-h-60">
-                    {allDistricts.map(d => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select District"
+                  error={errors.locations?.[index]?.district}
+                />
                 {errors.locations?.[index]?.district && (
                   <p className="text-xs text-red-500">{errors.locations[index].district.message}</p>
                 )}
               </div>
               
               <div className="space-y-1.5">
-                <Select
+                <SearchableSelect
+                  options={availableTowns}
                   value={watch(`locations.${index}.town`)}
-                  onValueChange={(val) => setValue(`locations.${index}.town`, val, { shouldValidate: true })}
+                  onChange={(val) => setValue(`locations.${index}.town`, val, { shouldValidate: true })}
+                  placeholder="Select Town"
                   disabled={!selectedDistrict}
-                >
-                  <SelectTrigger className={`w-full bg-background/50 ${errors.locations?.[index]?.town ? 'border-red-500' : ''}`}>
-                    <SelectValue placeholder="Select Town" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover max-h-60">
-                    {availableTowns.map(t => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  error={errors.locations?.[index]?.town}
+                />
                 {errors.locations?.[index]?.town && (
                   <p className="text-xs text-red-500">{errors.locations[index].town.message}</p>
                 )}
@@ -288,7 +334,7 @@ function WorkerEditForm({ worker, onSave, onCancel }) {
           <IconCheck className="h-4 w-4" />
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel} className="gap-2">
+        <Button type="button" variant="outline" onClick={handleCancel} className="gap-2">
           <IconX className="h-4 w-4" />
           Cancel
         </Button>
@@ -310,15 +356,16 @@ export default function WorkerProfile() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [showPhone, setShowPhone] = useState(false);
 
   // If no id param, show the logged-in user's own profile
-  const isOwnProfile = !id || (currentUser && id === currentUser.uid);
+  const isOwnProfile = !id || (currentUser && id === currentUser.id);
 
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const profileId = id || currentUser?.uid;
+        const profileId = id || currentUser?.id;
         if (!profileId) { setLoading(false); return; }
 
         if (userRole === 'worker' || id) {
@@ -361,25 +408,43 @@ export default function WorkerProfile() {
   }, [id, currentUser, userRole]);
 
   const handleSaveWorkerProfile = async (data) => {
-    const profileId = id || currentUser?.uid;
+    const profileId = id || currentUser?.id;
     const updatePayload = JSON.parse(JSON.stringify({
       name: data.name || '',
+      email: data.email || '',
       categories: data.categories || [],
       avatar: data.avatar || '',
       bio: data.bio || '',
       phone: data.phone || '',
       locations: data.locations || [],
+      // Also update the fallback category field just in case
+      category: data.categories && data.categories.length > 0 ? data.categories[0] : 'Repairs Others'
     }, (k, v) => v === undefined ? null : v));
+
     try {
+      // First, fetch the current worker to clean up unused avatars
+      const { data: currentWorker } = await supabase.from('workers').select('avatar, pendingUpdate').eq('id', profileId).single();
+      
+      // If we are replacing the current active avatar, delete the old one
+      if (currentWorker?.avatar && currentWorker.avatar !== data.avatar) {
+        await deleteAvatarFile(currentWorker.avatar);
+      }
+      // If there was a pending avatar, also delete it since we're making updates direct now
+      if (currentWorker?.pendingUpdate?.avatar && currentWorker.pendingUpdate.avatar !== data.avatar) {
+        await deleteAvatarFile(currentWorker.pendingUpdate.avatar);
+      }
+
       await supabase.from('workers').update({
-        pendingUpdate: updatePayload
+        ...updatePayload,
+        pendingUpdate: null // clear any pending update
       }).eq('id', profileId);
-      setWorker(prev => ({ ...prev, pendingUpdate: updatePayload }));
+      
+      setWorker(prev => ({ ...prev, ...updatePayload, pendingUpdate: null }));
       setIsEditing(false);
-      setSuccessMsg('Your profile updates have been submitted for admin approval.');
+      setSuccessMsg('Your profile has been updated successfully.');
       setTimeout(() => setSuccessMsg(''), 5000);
     } catch (error) {
-      console.error("Firestore save worker profile error:", error);
+      console.error("Save worker profile error:", error);
       throw error;
     }
   };
@@ -485,24 +550,6 @@ export default function WorkerProfile() {
               </div>
 
               <div className="flex flex-col gap-2 min-w-[200px]">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <IconMapPin className="h-5 w-5 text-primary shrink-0" />
-                  <span className="flex flex-wrap gap-1">
-                    {Array.isArray(worker.locations) && worker.locations.length > 0 ? (
-                      worker.locations.map((loc, idx) => (
-                        <span key={idx}>
-                          {loc.town}, {loc.district}{idx < worker.locations.length - 1 ? ' | ' : ''}
-                        </span>
-                      ))
-                    ) : (
-                      worker.location || 'Location not set'
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <IconPhone className="h-5 w-5 text-primary shrink-0" />
-                  <span>{worker.phone || 'No phone number'}</span>
-                </div>
                 {canEdit && !isEditing && (
                   <Button
                     variant="outline"
@@ -535,36 +582,40 @@ export default function WorkerProfile() {
                     <h3 className="text-lg font-semibold mb-4">Professional Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                      {/* Availability */}
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/40">
-                        <IconClock className="h-5 w-5 text-primary shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Availability</p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className={`h-2 w-2 rounded-full ${worker.available ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
-                            <span className="text-sm font-medium">
-                              {worker.available ? 'Available / Active' : 'Unavailable / Inactive'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+
 
                       {/* Phone */}
                       <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/40">
                         <IconPhone className="h-5 w-5 text-primary shrink-0" />
                         <div>
                           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Phone</p>
-                          <p className="text-sm font-medium mt-0.5">{worker.phone || 'Not provided'}</p>
+                          {worker.phone ? (
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-sm font-medium tracking-wider">
+                                {showPhone ? worker.phone : worker.phone.slice(0, 3) + ' •••• ' + worker.phone.slice(-3)}
+                              </p>
+                              {!showPhone && (
+                                <button
+                                  onClick={() => setShowPhone(true)}
+                                  className="text-xs font-semibold text-primary hover:underline cursor-pointer bg-primary/10 px-2 py-0.5 rounded"
+                                >
+                                  Show
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm font-medium mt-0.5 text-muted-foreground">Not provided</p>
+                          )}
                         </div>
                       </div>
 
                       {/* Email */}
-                      {(userDoc?.email || (isOwnProfile && currentUser?.email)) && (
+                      {(worker.email || userDoc?.email || (isOwnProfile && currentUser?.email)) && (
                         <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/40">
                           <IconMail className="h-5 w-5 text-primary shrink-0" />
                           <div>
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Email</p>
-                            <p className="text-sm font-medium mt-0.5">{userDoc?.email || currentUser?.email}</p>
+                            <p className="text-sm font-medium mt-0.5">{worker.email || userDoc?.email || currentUser?.email}</p>
                           </div>
                         </div>
                       )}
@@ -635,7 +686,7 @@ export default function WorkerProfile() {
             <h1 className="text-2xl font-bold tracking-tight">My Account</h1>
             {userRole === 'admin' && (
               <div className="flex items-center gap-1.5 text-primary text-sm font-medium">
-                <IconShieldCheck className="h-4 w-4" />
+                <IconDashboard className="h-4 w-4" />
                 <span>Administrator</span>
               </div>
             )}
@@ -669,7 +720,7 @@ export default function WorkerProfile() {
             {userRole === 'admin' && (
               <Button asChild className="w-full gap-2 mt-2">
                 <Link to="/admin">
-                  <IconShieldCheck className="h-4 w-4" />
+                  <IconDashboard className="h-4 w-4" />
                   Go to Admin Dashboard
                 </Link>
               </Button>

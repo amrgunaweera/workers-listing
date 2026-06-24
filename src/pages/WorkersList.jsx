@@ -25,7 +25,11 @@ export default function WorkersList() {
   const [prevQueryParam, setPrevQueryParam] = useState(queryParam);
 
   const sortedCategories = useMemo(() => {
-    return ['all', ...[...importedCategories].sort((a, b) => t(`categories.${a}`).localeCompare(t(`categories.${b}`)))];
+    return ['all', ...[...importedCategories].sort((a, b) => {
+      const transA = t(`categories.${normalizeCategory(a)}`, a);
+      const transB = t(`categories.${normalizeCategory(b)}`, b);
+      return transA.localeCompare(transB);
+    })];
   }, [t]);
 
   if (queryParam !== prevQueryParam) {
@@ -72,7 +76,7 @@ export default function WorkersList() {
   const updateUrlParams = (q, cat, district, town) => {
     const params = new URLSearchParams();
     if (q) params.set('q', q);
-    if (cat && cat !== 'all') params.set('category', cat);
+    if (cat && cat !== 'all') params.set('category', normalizeCategory(cat));
     if (district && district !== 'all') params.set('district', district);
     if (town && town !== 'all') params.set('town', town);
     setSearchParams(params);
@@ -249,16 +253,19 @@ export default function WorkersList() {
               <div>
                 <h4 className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2">{t('categories.browse', 'Categories')}</h4>
                 <div className="space-y-1 flex flex-col max-h-[350px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
-                  {sortedCategories.map(cat => (
-                    <Button
-                      key={cat}
-                      variant={selectedCategory === cat ? "secondary" : "ghost"}
-                      className={`justify-start w-full h-8 shrink-0 text-xs transition-colors ${selectedCategory === cat ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/80 hover:text-foreground'}`}
-                      onClick={() => handleCategoryChange(cat)}
-                    >
-                      {t(`categories.${cat}`)}
-                    </Button>
-                  ))}
+                  {sortedCategories.map(cat => {
+                    const isSelected = selectedCategory === normalizeCategory(cat);
+                    return (
+                      <Button
+                        key={cat}
+                        variant={isSelected ? "secondary" : "ghost"}
+                        className={`justify-start w-full h-8 shrink-0 text-xs transition-colors ${isSelected ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/80 hover:text-foreground'}`}
+                        onClick={() => handleCategoryChange(cat)}
+                      >
+                        {t(`categories.${normalizeCategory(cat)}`, cat)}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -304,7 +311,7 @@ export default function WorkersList() {
                   )}
                   {selectedCategory !== 'all' && (
                     <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/20 pl-2.5 pr-1.5 py-0.5 rounded-full text-xs">
-                      <span>Category: {t(`categories.${selectedCategory}`)}</span>
+                      <span>Category: {t(`categories.${normalizeCategory(selectedCategory)}`, selectedCategory)}</span>
                       <button 
                         onClick={() => handleCategoryChange('all')}
                         className="hover:bg-primary/20 rounded-full p-0.5 transition-colors focus:outline-none cursor-pointer"

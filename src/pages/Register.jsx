@@ -101,7 +101,7 @@ export default function Register() {
 
       if (!user) throw new Error("No user returned from signUp");
 
-      await supabase.from('users').insert([{
+      const { error: userError } = await supabase.from('users').insert([{
         id: user.id,
         email: user.email,
         phone: data.phone?.trim() || null,
@@ -109,14 +109,15 @@ export default function Register() {
         createdAt: new Date().toISOString(),
       }]);
 
+      if (userError) throw userError;
+
       if (role === 'worker') {
-        await supabase.from('workers').insert([{
+        const { error: workerError } = await supabase.from('workers').insert([{
           id: user.id,
           name: `${data.firstName} ${data.lastName}`.trim(),
           categories: [],
-          category: 'repairs-others',
+          category: 'Repairs Others',
           rating: 0,
-          location: 'Not specified',
           locations: [],
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName + ' ' + data.lastName)}`,
           bio: 'New worker on the platform.',
@@ -126,12 +127,14 @@ export default function Register() {
           userId: user.id,
           createdAt: new Date().toISOString(),
         }]);
+        
+        if (workerError) throw workerError;
       }
 
       navigate(role === 'worker' ? '/?registered=pending' : '/');
     } catch (err) {
       console.error(err);
-      setServerError(t('auth.registerError'));
+      setServerError(err?.message || t('auth.registerError'));
     } finally {
       setLoading(false);
     }

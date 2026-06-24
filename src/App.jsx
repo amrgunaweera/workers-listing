@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  IconMenu2, 
-  IconX, 
-  IconBriefcase, 
-  IconGlobe, 
-  IconBrandFacebook, 
-  IconBrandX, 
-  IconBrandTiktok, 
-  IconBrandYoutube, 
-  IconBrandGooglePlay, 
+import {
+  IconMenu2,
+  IconX,
+  IconBriefcase,
+  IconGlobe,
+  IconBrandFacebook,
+  IconBrandX,
+  IconBrandTiktok,
+  IconBrandYoutube,
+  IconBrandGooglePlay,
   IconBrandApple,
   IconUser,
-  IconShieldCheck
+  IconDashboard
 } from '@tabler/icons-react';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -22,6 +22,8 @@ import WorkerProfile from './pages/WorkerProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import WorkersList from './pages/WorkersList';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import ForcePasswordChange from './pages/ForcePasswordChange';
 import { supabase } from './lib/supabase';
 
 import { Button } from './components/ui/button';
@@ -77,7 +79,7 @@ function Navbar() {
                       to="/admin"
                       className="flex items-center gap-1.5 hover:bg-muted px-3 py-1.5 rounded-full text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
                     >
-                      <IconShieldCheck className="h-4 w-4" />
+                      <IconDashboard className="h-4 w-4" />
                       {t('nav.dashboard')}
                     </Link>
                   ) : (
@@ -124,9 +126,8 @@ function Navbar() {
               {currentLang !== 'si' && (
                 <button
                   onClick={() => handleLanguageChange('si')}
-                  className={`px-3 py-1 text-xs font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted ${
-                    currentLang !== 'en' ? 'border-l border-border/60' : ''
-                  }`}
+                  className={`px-3 py-1 text-xs font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted ${currentLang !== 'en' ? 'border-l border-border/60' : ''
+                    }`}
                 >
                   සිං
                 </button>
@@ -168,7 +169,7 @@ function Navbar() {
               <>
                 {userRole === 'admin' ? (
                   <Link to="/admin" onClick={() => setIsOpen(false)} className="hover:bg-muted flex items-center gap-2 px-3 py-2.5 rounded-lg text-base font-medium transition-colors">
-                    <IconShieldCheck className="h-4 w-4" />
+                    <IconDashboard className="h-4 w-4" />
                     {t('nav.dashboard')}
                   </Link>
                 ) : (
@@ -197,7 +198,7 @@ function Navbar() {
                 </Link>
               </>
             )}
-            
+
             <div className="px-3 py-2 flex flex-col gap-2 mt-2">
               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                 <IconGlobe className="h-4 w-4" />
@@ -215,9 +216,8 @@ function Navbar() {
                 {currentLang !== 'si' && (
                   <button
                     onClick={() => { handleLanguageChange('si'); setIsOpen(false); }}
-                    className={`flex-1 text-center py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted ${
-                      currentLang !== 'en' ? 'border-l border-border/60' : ''
-                    }`}
+                    className={`flex-1 text-center py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted ${currentLang !== 'en' ? 'border-l border-border/60' : ''
+                      }`}
                   >
                     සිංහල
                   </button>
@@ -308,7 +308,7 @@ function Footer() {
               <a href="#" className="flex items-center gap-2.5 bg-zinc-900 dark:bg-zinc-800 border border-zinc-800 dark:border-zinc-700 hover:bg-zinc-950 dark:hover:bg-zinc-700/80 text-white px-4 py-2.5 rounded-lg transition-colors w-full sm:max-w-[170px]">
                 <IconBrandApple className="h-6 w-6 text-white" />
                 <div className="text-left leading-none">
-                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">Download on the</span>
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">Download on</span>
                   <span className="text-xs font-semibold block mt-0.5">App Store</span>
                 </div>
               </a>
@@ -344,14 +344,18 @@ function App() {
               <Route path="/workers" element={<WorkersList />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/register" element={<Register />} />
 
-              {/* Worker profile — public when ?id= is provided, protected for own profile */}
-              <Route path="/profile" element={
+              {/* Protected Route for forcing password change */}
+              <Route path="/force-password-change" element={
                 <RequireAuth>
-                  <WorkerProfile />
+                  <ForcePasswordChange />
                 </RequireAuth>
               } />
+
+              {/* Worker profile — public when ?id= is provided, protected for own profile */}
+              <Route path="/profile" element={<WorkerProfile />} />
 
               {/* Admin only */}
               <Route path="/admin" element={

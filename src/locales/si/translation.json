@@ -145,6 +145,18 @@
       "passwordMin": "මුරපදය අවම වශයෙන් අක්ෂර 6ක් විය යුතුය.",
       "confirmPasswordRequired": "කරුණාකර ඔබගේ මුරපදය තහවුරු කරන්න.",
       "passwordsMustMatch": "මුරපද ගැලපෙන්නේ නැත."
-    }
+    },
+    "passwordUpdated": "Password Updated",
+    "resetPasswordTitle2": "Reset Password Title2",
+    "resetPasswordDesc2": "Reset Password Desc2",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "updatingPassword": "Updating Password",
+    "updatePassword": "Update Password"
+  },
+  "banner": {
+    "badge": "Badge",
+    "title": "Title",
+    "subtitle": "Subtitle"
   }
 }

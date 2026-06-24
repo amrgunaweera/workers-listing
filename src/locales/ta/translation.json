@@ -145,6 +145,18 @@
       "passwordMin": "கடவுச்சோல் குறைந்தது 6 எழுத்துக்களாக இருக்க வேண்டும்.",
       "confirmPasswordRequired": "தயவுசெய்து உங்கள் கடவுச்சோலை உறுதிப்படுத்தவும்.",
       "passwordsMustMatch": "கடவுச்சோல்கள் பொருந்த வேண்டும்."
-    }
+    },
+    "passwordUpdated": "Password Updated",
+    "resetPasswordTitle2": "Reset Password Title2",
+    "resetPasswordDesc2": "Reset Password Desc2",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "updatingPassword": "Updating Password",
+    "updatePassword": "Update Password"
+  },
+  "banner": {
+    "badge": "Badge",
+    "title": "Title",
+    "subtitle": "Subtitle"
   }
 }

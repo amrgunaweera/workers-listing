@@ -75,7 +75,9 @@ export default function Login() {
         .eq('id', user.id)
         .single();
 
-      if (userDoc?.role === 'admin') {
+      if (user.user_metadata?.requires_password_change) {
+        navigate('/force-password-change');
+      } else if (userDoc?.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/profile');

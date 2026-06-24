@@ -46,7 +46,7 @@ import {
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../components/ui/carousel';
-import { categories } from '../lib/categories';
+import { categories, normalizeCategory } from '../lib/categories';
 
 const categoryIcons = {
   'masons': <IconWall className="w-7 h-7 mb-2 text-primary" />,
@@ -98,7 +98,11 @@ export default function Home() {
   const [showPendingBanner, setShowPendingBanner] = useState(searchParams.get('registered') === 'pending');
 
   const sortedCategories = useMemo(() => {
-    return [...categories].sort((a, b) => t(`categories.${a}`).localeCompare(t(`categories.${b}`)));
+    return [...categories].sort((a, b) => {
+      const transA = t(`categories.${normalizeCategory(a)}`, a);
+      const transB = t(`categories.${normalizeCategory(b)}`, b);
+      return transA.localeCompare(transB);
+    });
   }, [t]);
 
   const carouselItems = useMemo(() => {
@@ -108,7 +112,7 @@ export default function Home() {
         <CarouselItem key={index} className="pl-4 sm:pl-6 basis-auto">
           <div className="flex flex-col gap-4 sm:gap-6">
             {chunk.map(catId => {
-              const rawIcon = categoryIcons[catId] || <IconTools className="w-7 h-7 mb-2 text-primary" />;
+              const rawIcon = categoryIcons[normalizeCategory(catId)] || <IconTools className="w-7 h-7 mb-2 text-primary" />;
               const icon = React.cloneElement(rawIcon, {
                 className: "size-6 mb-2 text-primary transition-transform duration-300 group-hover:scale-110"
               });
@@ -120,7 +124,7 @@ export default function Home() {
                   onClick={() => navigateToCategory(catId)}
                 >
                   {icon}
-                  <span className="text-xs font-medium text-foreground text-center line-clamp-2">{t(`categories.${catId}`)}</span>
+                  <span className="text-xs font-medium text-foreground text-center line-clamp-2">{t(`categories.${normalizeCategory(catId)}`, catId)}</span>
                 </Button>
               );
             })}
@@ -140,7 +144,7 @@ export default function Home() {
   };
 
   const navigateToCategory = (category) => {
-    navigate(`/workers?category=${encodeURIComponent(category)}`);
+    navigate(`/workers?category=${encodeURIComponent(normalizeCategory(category))}`);
   };
 
   return (

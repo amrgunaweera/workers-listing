@@ -131,6 +131,13 @@
     "sending": "Sending link...",
     "sendResetLink": "Send Reset Link",
     "backToLogin": "Back to Login",
+    "resetPasswordTitle2": "Set New Password",
+    "resetPasswordDesc2": "Please enter your new password below.",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "updatingPassword": "Updating...",
+    "updatePassword": "Update Password",
+    "passwordUpdated": "Password updated successfully!",
     "confirmPassword": "Confirm Password",
     "validation": {
       "firstNameRequired": "First name is required.",
@@ -146,5 +153,10 @@
       "confirmPasswordRequired": "Please confirm your password.",
       "passwordsMustMatch": "Passwords do not match."
     }
+  },
+  "banner": {
+    "badge": "Badge",
+    "title": "Title",
+    "subtitle": "Subtitle"
   }
 }
